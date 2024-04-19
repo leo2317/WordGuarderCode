@@ -66,14 +66,14 @@ class App:
             self.user_input_display.read(key)
     
     def update_items(self):
-        self.board.update(self.user_input_display.text)
+        self.board.update(self.user_input_display.inputbox)
         is_match = self.board.is_match
-        is_oob = self.board.is_oob
+        oob_n = self.board.oob_count()
         self.user_input_display.update(is_match)
         if is_match:
             self._info_table["score"] += self._SCORE_PER_WORD
-        if is_oob:
-            self._info_table["score"] -= self._SCORE_PER_WORD
+        if oob_n > 0:
+            self._info_table["score"] -= self._SCORE_PER_WORD*oob_n
         self.game_info.update(self._info_table)
     
     def on_render(self):

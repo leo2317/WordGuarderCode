@@ -59,10 +59,10 @@ class PygameFunction:
     @classmethod
     def read_key(cls, event):
         if event.type == pygame.KEYDOWN:
-            if event.unicode.isalnum():
-                return event.unicode
-            elif event.key == pygame.K_BACKSPACE:
+            if event.key == pygame.K_BACKSPACE:
                 return cls.KEY_BACKSPACE
+            else:
+                return event.unicode
         return None
 
 def get_word():

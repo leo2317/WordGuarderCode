@@ -90,29 +90,69 @@ class RunningWord(Word):
         super().update(new_pos)
 
 class UserInputDisplay(Word):
+    _COMMAND_PREFIX = '/'
+
+    _TYPING_MODE = 0
+    _COMMAND_MODE = 1
+
     def __init__(self, pos: Tuple[int, int], *args):
         super().__init__("", pos, *args)
+
+        self.inputbox = ""
+        '''
+        typing: (default)
+        command: "/" prefix
+        '''
+        self.mode = UserInputDisplay._TYPING_MODE
+    
+    @property
+    def mode(self):
+        return self._mode
+    
+    @property
+    def is_empty(self):
+        return len(self.inputbox) == 0
+    
+    @mode.setter
+    def mode(self, new_mode: int):
+        self._mode = new_mode
+        self.update_text()
     
     def _add_key(self, key: str):
         assert isinstance(key, str)
-        self.text += key
+        self.inputbox += key
+        self.update_text()
     
     def _pop(self):
-        self.text = self.text[:-1]
+        self.inputbox = self.inputbox[:-1]
+        self.update_text()
     
     def read(self, key: str):
         if key == PygameFunction.KEY_BACKSPACE:
-            self._pop()
+            if self.mode == UserInputDisplay._COMMAND_MODE:
+                self.mode = UserInputDisplay._TYPING_MODE
+            else:
+                self._pop()
         elif key is not None:
-            self._add_key(key)
+            if self.is_empty and key == UserInputDisplay._COMMAND_PREFIX:
+                self.mode = UserInputDisplay._COMMAND_MODE
+            elif key.isalnum() or key == ' ':
+                self._add_key(key)
 
     def update(self, match: bool):
         super().update()
         if match:
             self.clear()
 
+    def update_text(self):
+        mode_name = "typing" if self.mode == UserInputDisplay._TYPING_MODE else "command"
+        mode_str = f"[ {mode_name} ] " 
+        input_str = f"\"{self.inputbox}\""
+        self.text = mode_str + input_str
+    
     def clear(self):
-        self.text = ""
+        self.inputbox = ""
+        self.update_text()
 
 class GameInfo(Word):
     def __init__(self, pos: Tuple[int], *args):

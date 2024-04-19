@@ -74,9 +74,8 @@ class WordRunningBoard:
     def is_match(self):
         return any(line.is_match for line in self.lines)
 
-    @property
-    def is_oob(self):
-        return any(line.is_oob for line in self.lines)
+    def oob_count(self):
+        return sum(line.is_oob for line in self.lines)
     
     def update(self, input_word):
         for line in self.lines:
