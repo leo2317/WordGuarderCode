@@ -59,6 +59,9 @@ class WordRunningLine:
         word_queue_copy = list(self.word_queue)
         for word in word_queue_copy:
             word.update()
+    
+    def clear(self):
+        self.word_queue.clear()
 
 class WordRunningBoard:
     _LINE_GAP = 40
@@ -94,3 +97,7 @@ class WordRunningBoard:
 
         for line in self.lines:
             line.update(input_word)
+    
+    def clear(self):
+        for line in self.lines:
+            line.clear()

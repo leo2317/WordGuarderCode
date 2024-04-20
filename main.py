@@ -21,10 +21,12 @@ class App:
 
     # app constants
     _SCORE_PER_WORD = 10
+    _MIN_SCORE = -50
 
     def __init__(self, height, width, fps):
         # pygame setting
         self._running = False
+        self._again = False
         self._display_surf = None
         self._fps = fps
         self._frame_per_sec = None
@@ -49,12 +51,19 @@ class App:
 
         # app setting
         self._running = True
+        self._again = True
         Item.set_display_serf(self._display_surf)
 
     def on_start(self):
-        self.board = WordRunningBoard(10, (0, 10), self.width)
-        self.user_input_display = UserInputDisplay((20, self.height - 30))
-        self.game_info = GameInfo((500, self.height - 30))
+        if self.board is None:
+            self.board = WordRunningBoard(10, (0, 10), self.width)
+        self.board.clear()
+        if self.user_input_display is None:
+            self.user_input_display = UserInputDisplay((20, self.height - 30))
+        self.user_input_display.clear()
+        if self.game_info is None:
+            self.game_info = GameInfo((500, self.height - 30))
+        self._info_table["score"] = 0
     
     def on_event(self, event):
         if event.type == QUIT:
@@ -80,6 +89,10 @@ class App:
         if oob_n > 0:
             self._info_table["score"] -= self._SCORE_PER_WORD*oob_n
         self.game_info.update(self._info_table)
+
+        is_over = self._info_table["score"] <= self._MIN_SCORE
+
+        return is_over
     
     def on_render(self):
         pygame.display.update()
@@ -89,35 +102,58 @@ class App:
         self._display_surf.fill(self._BACKGROUND_COLOR)
     
     def home_loop(self):
-        button = Button(self.width/2, self.height/2, "start!")
+        start_button = Button(self.width/2, self.height/2, "start!")
         is_start = False
         while self._running and not is_start:
             for event in pygame.event.get():
                 self.on_event(event)
-                if button.handle_event(event):
+                if start_button.handle_event(event):
                     self.page = Pages.main
                     is_start = True
-            button.draw()
+            start_button.draw()
             self.on_render()
     
     def main_loop(self):
         self.on_start()
+        is_over = False
 
-        while self._running:
+        while self._running and not is_over:
             for event in pygame.event.get():
                 self.on_event(event)
             self.on_cleanup()
-            self.update_items()
+            is_over = self.update_items()
             self.on_render()
     
     def exit_loop(self):
-        while self._running:
-            pass
+        gap, padding = 100, 10
+        again_button = Button(self.width/2, self.height/2 - gap - padding, "again!")
+        check_record_button = Button(self.width/2, self.height/2, "check record")
+        exit_button = Button(self.width/2, self.height/2 + gap + padding, "exit")
+
+        self._again = False
+        while self._running and not self._again:
+            for event in pygame.event.get():
+                self.on_event(event)
+                '''
+                TODO: wraping this handle_event() into on_event()
+                '''
+                if again_button.handle_event(event):
+                    self.page = Pages.main
+                    self._again = True
+                if check_record_button.handle_event(event):
+                    pass
+                if exit_button.handle_event(event):
+                    self._running = False
+            again_button.draw()
+            check_record_button.draw()
+            exit_button.draw()
+            self.on_render()
 
     def on_execute(self):
         self.home_loop()
-        self.main_loop()
-        self.exit_loop()
+        while self._again:
+            self.main_loop()
+            self.exit_loop()
 
         pygame.quit()
         sys.exit()

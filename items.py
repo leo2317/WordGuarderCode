@@ -177,7 +177,7 @@ class Button(Item):
     _FONT_STYLE = 'freesansbold.ttf'
     _FONT_SIZE = 36
     
-    WIDTH = 200
+    WIDTH = 250
     HEIGHT = 100
 
     def __init__(self, x: int, y: int, text: str, text_color=BLACK, button_color=GRAY, hover_color=GREEN):
