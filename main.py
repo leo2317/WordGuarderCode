@@ -1,16 +1,13 @@
 import sys
 
 import pygame
-from pygame.locals import (
-    QUIT,
-    KEYDOWN,
-)
+from pygame.locals import QUIT
 
 import items
-from components import (
-    WordRunningBoard,
-)
+from components import WordRunningBoard
+from definitions import Pages
 from items import (
+    Button,
     Item,
     UserInputDisplay,
     GameInfo,
@@ -34,6 +31,7 @@ class App:
 
         # app setting
         self.size = self.width, self.height = width, height
+        self.page = Pages.home
         self.board = None
         self.user_input_display = None
         self.game_info = None
@@ -43,15 +41,17 @@ class App:
         }
     
     def on_init(self):
-        # pygame init
+        # pygame setting
         pygame.init()
         self._display_surf = pygame.display.set_mode(self.size)
         self._frame_per_sec = pygame.time.Clock()
         pygame.display.set_caption("Typing Game")
 
-        # app init
+        # app setting
         self._running = True
         Item.set_display_serf(self._display_surf)
+
+    def on_start(self):
         self.board = WordRunningBoard(10, (0, 10), self.width)
         self.user_input_display = UserInputDisplay((20, self.height - 30))
         self.game_info = GameInfo((500, self.height - 30))
@@ -61,9 +61,14 @@ class App:
             self._running = False
             return
 
-        key = PygameFunction.read_key(event)
-        if key is not None:
-            self.user_input_display.read(key)
+        if self.page == Pages.home:
+            pass
+        elif self.page == Pages.main:
+            key = PygameFunction.read_key(event)
+            if key is not None:
+                self.user_input_display.read(key)
+        else:
+            pass
     
     def update_items(self):
         self.board.update(self.user_input_display.inputbox)
@@ -83,13 +88,37 @@ class App:
     def on_cleanup(self):
         self._display_surf.fill(self._BACKGROUND_COLOR)
     
-    def on_execute(self):
+    def home_loop(self):
+        button = Button(self.width/2, self.height/2, "start!")
+        is_start = False
+        while self._running and not is_start:
+            for event in pygame.event.get():
+                self.on_event(event)
+                if button.handle_event(event):
+                    self.page = Pages.main
+                    is_start = True
+            button.draw()
+            self.on_render()
+    
+    def main_loop(self):
+        self.on_start()
+
         while self._running:
             for event in pygame.event.get():
                 self.on_event(event)
             self.on_cleanup()
             self.update_items()
             self.on_render()
+    
+    def exit_loop(self):
+        while self._running:
+            pass
+
+    def on_execute(self):
+        self.home_loop()
+        self.main_loop()
+        self.exit_loop()
+
         pygame.quit()
         sys.exit()
 

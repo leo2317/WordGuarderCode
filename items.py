@@ -7,9 +7,12 @@ from utils import PygameFunction
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+GRAY = (200, 200, 200)
 GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
 RED = (255, 0, 0)
+
+# String
 
 class Item(pygame.sprite.Sprite):
     _DISPLAY_SURF = None
@@ -38,7 +41,7 @@ class Word(Item):
     def __init__(self, text: str, pos: Tuple[int, int], color: str=None, *args):
         super().__init__(*args)
 
-        self._FONT = pygame.font.Font(self._FONT_STYLE, self._FONT_SIZE) 
+        self.font = pygame.font.Font(self._FONT_STYLE, self._FONT_SIZE) 
         self.font_color = self._FONT_COLOR if color is None else color
         self.text = text
         self._create_word(pos)
@@ -51,7 +54,7 @@ class Word(Item):
         return self.word_rec.topleft
     
     def _set_pos(self, xy: Tuple[int, int]):
-        self.word = self._FONT.render(self.text, True, self.font_color) 
+        self.word = self.font.render(self.text, True, self.font_color) 
         self.word_rec = self.word.get_rect()
         self.word_rec.topleft = xy
     
@@ -167,4 +170,45 @@ class GameInfo(Word):
     def update(self, info_table: Mapping):
         self.text = ', '.join(GameInfo.info_format(*pair) for pair in info_table.items())
         super().update()
+
+# Widget
+
+class Button(Item):
+    _FONT_STYLE = 'freesansbold.ttf'
+    _FONT_SIZE = 36
     
+    WIDTH = 200
+    HEIGHT = 100
+
+    def __init__(self, x: int, y: int, text: str, text_color=BLACK, button_color=GRAY, hover_color=GREEN):
+        x -= self.WIDTH/2
+        y -= self.HEIGHT/2
+        self.rect = pygame.Rect(x, y, self.WIDTH, self.HEIGHT)
+        self.font = pygame.font.Font(self._FONT_STYLE, self._FONT_SIZE)
+        self.text = text
+        self.text_color = text_color
+        self.button_color = button_color
+        self.hover_color = hover_color
+        self.is_hovered = False
+
+    def draw(self):
+        # Change button color if hovered
+        color = self.hover_color if self.is_hovered else self.button_color
+
+        # Draw button
+        pygame.draw.rect(self._DISPLAY_SURF, color, self.rect)
+
+        # Render text
+        text_surface = self.font.render(self.text, True, self.text_color)
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        self.build(text_surface, text_rect)
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEMOTION:
+            # Check if mouse is over the button
+            self.is_hovered = self.rect.collidepoint(event.pos)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            # Check if mouse click is on the button
+            if self.is_hovered:
+                return True
+        return False

@@ -1,9 +1,9 @@
+from random import random
+from time import time
 from typing import Tuple
 
-from items import (
-    RunningWord,
-    Word,
-)
+import numpy as np
+from items import RunningWord
 from utils import (
     get_word,
     Queue,
@@ -45,7 +45,7 @@ class WordRunningLine:
 
         return is_oob
 
-    def _add_word(self, text):
+    def add_word(self, text):
         self.word_queue.append(RunningWord(text, self.pos))
     
     def _remove_word(self, idx):
@@ -63,12 +63,13 @@ class WordRunningLine:
 class WordRunningBoard:
     _LINE_GAP = 40
 
+    _GENERATE_CYCLE = 2  # sec/word
+
     def __init__(self, line_num: int, pos: Tuple[int, int], line_boundry: int):
         x, y = pos
         self.lines = [WordRunningLine((x, y + i*self._LINE_GAP), line_boundry) for i in range(line_num)]
 
-        for line in self.lines:
-            line._add_word(get_word())
+        self.prev_generate_time = time()
     
     @property
     def is_match(self):
@@ -77,6 +78,19 @@ class WordRunningBoard:
     def oob_count(self):
         return sum(line.is_oob for line in self.lines)
     
+    def generate_trigger(self):
+        return time() - self.prev_generate_time > self._GENERATE_CYCLE
+    
+    def generate_word(self):
+        random_idx = np.random.randint(0, len(self.lines))
+        selected_line = self.lines[random_idx]
+        selected_line.add_word(get_word())
+
+        self.prev_generate_time = time()
+    
     def update(self, input_word):
+        if self.generate_trigger():
+            self.generate_word()
+
         for line in self.lines:
             line.update(input_word)
