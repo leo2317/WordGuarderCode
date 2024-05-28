@@ -3,7 +3,6 @@ import sys
 import pygame
 from pygame.locals import QUIT
 
-import items
 from commands import (
     Commands,
     parse_arg,
@@ -19,12 +18,12 @@ from items import (
     UserInputDisplay,
     GameInfo,
 )
-from utils import PygameFunction
+from utils import Colors, PygameFunction
 
 
 class App:
     # pygame constants
-    _BACKGROUND_COLOR = items.BLACK
+    _BACKGROUND_COLOR = Colors.BLACK.value
 
     # app constants
     _SCORE_PER_WORD = 10
@@ -98,6 +97,8 @@ class App:
         is_match = self.board.is_match
         oob_n = self.board.oob_count()
         input_str = self.user_input_display.update(is_match)
+
+        pygame.draw.line(self._display_surf, Colors.WHITE.value, (0, self.height - 50), (self.width, self.height - 50), 3)
 
         # handling command
         if input_str and input_str[-1] == '\n':  # is a finished command

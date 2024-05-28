@@ -1,5 +1,6 @@
 import random
 from collections import UserList
+from enum import Enum
 from typing import List
 
 import pygame
@@ -7,6 +8,15 @@ import pygame
 
 with open("./words.txt", 'r') as f:
     _WORDS = f.read().splitlines()
+
+class Colors(Enum):
+    BLACK = (0, 0, 0)
+    WHITE = (255, 255, 255)
+    GRAY = (200, 200, 200)
+    GREEN = (0, 255, 0)
+    YELLOW = (255, 255, 0)
+    RED = (255, 0, 0)
+    PURPLE = (160, 32, 240)
 
 class Queue(UserList):
     @property
