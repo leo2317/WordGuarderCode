@@ -4,15 +4,8 @@ from typing import Tuple, Mapping, Union
 import pygame
 
 from commands import Commands
-from utils import PygameFunction, Queue
+from utils import Colors, PygameFunction, Queue
 
-
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GRAY = (200, 200, 200)
-GREEN = (0, 255, 0)
-YELLOW = (255, 255, 0)
-RED = (255, 0, 0)
 
 # String
 
@@ -38,7 +31,7 @@ class Item(pygame.sprite.Sprite):
 class Word(Item):
     _FONT_STYLE = 'freesansbold.ttf'
     _FONT_SIZE = 15
-    _FONT_COLOR = WHITE
+    _FONT_COLOR = Colors.WHITE.value
 
     def __init__(self, text: str, pos: Tuple[int, int], color: str=None, *args):
         super().__init__(*args)
@@ -70,9 +63,9 @@ class Word(Item):
         self._create_word(new_pos)
 
 class RunningWord(Word):
-    _SAFE_COLOR = GREEN
-    _WARNING_COLOR = YELLOW
-    _DENGEOUS_COLOR = RED
+    _SAFE_COLOR = Colors.GREEN.value
+    _WARNING_COLOR = Colors.YELLOW.value
+    _DENGEOUS_COLOR = Colors.RED.value
     _SAFE_BOUNDRY = 500
     _WARNING_BOUNDRY = 800
 
@@ -183,15 +176,16 @@ class GameInfo(Word):
 class Tower(Word):
     _GUARDING_LINE_POS = 980  # screen width: 1000
     _PADDING = 10
-    _SYMBOL = "--("
+    _SYMBOL = "-=("
     _COOL_TIME = 2
 
-    _TOWER_COLOR = (255, 255, 255)
+    _TOWER_COLOR = Colors.PURPLE.value
 
     def __init__(self, ypos):
         super().__init__(
             text=self._SYMBOL,
-            pos=(self._GUARDING_LINE_POS, ypos + self._PADDING)
+            pos=(self._GUARDING_LINE_POS, ypos + self._PADDING),
+            color=self._TOWER_COLOR
         )
 
         self.bullet_queue = Queue()
@@ -223,15 +217,16 @@ class Tower(Word):
 class Bullet(Word):
     _GUARDING_LINE_POS = 980  # screen width: 1000
     _PADDING = 10
-    _SYMBOL = '-'
+    _SYMBOL = '@'
     _SPEED = 3
 
-    _BULLET_COLOR = (255, 255, 255)
+    _BULLET_COLOR = Colors.PURPLE.value
 
     def __init__(self, pos):
         super().__init__(
             text=self._SYMBOL,
-            pos=pos
+            pos=pos,
+            color=self._BULLET_COLOR
         )
     
     @property
@@ -256,7 +251,7 @@ class Button(Item):
     WIDTH = 250
     HEIGHT = 100
 
-    def __init__(self, x: int, y: int, text: str, text_color=BLACK, button_color=GRAY, hover_color=GREEN):
+    def __init__(self, x: int, y: int, text: str, text_color=Colors.BLACK.value, button_color=Colors.GRAY.value, hover_color=Colors.GREEN.value):
         x -= self.WIDTH/2
         y -= self.HEIGHT/2
         self.rect = pygame.Rect(x, y, self.WIDTH, self.HEIGHT)

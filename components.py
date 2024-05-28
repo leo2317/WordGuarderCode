@@ -80,6 +80,7 @@ class WordRunningLine:
     
     def clear(self):
         self.word_queue.clear()
+        self.have_tower = False
 
 class WordRunningBoard:
     _LINE_GAP = _STD_LINE_GAP
