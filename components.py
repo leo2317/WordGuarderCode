@@ -3,11 +3,15 @@ from time import time
 from typing import Tuple
 
 import numpy as np
-from items import RunningWord
+import pygame
+
+from items import RunningWord, Tower
 from utils import (
     get_word,
     Queue,
 )
+
+_STD_LINE_GAP = 40
 
 
 class WordRunningLine:
@@ -22,6 +26,10 @@ class WordRunningLine:
     @property
     def word_num(self):
         return len(self.word_queue)
+
+    @property
+    def first_word(self):
+        return self.word_queue.head
     
     @property
     def is_match(self):
@@ -64,7 +72,7 @@ class WordRunningLine:
         self.word_queue.clear()
 
 class WordRunningBoard:
-    _LINE_GAP = 40
+    _LINE_GAP = _STD_LINE_GAP
 
     _GENERATE_CYCLE = 2  # sec/word
 
@@ -75,24 +83,29 @@ class WordRunningBoard:
         self.prev_generate_time = time()
     
     @property
+    def first_words(self):
+        return [line.first_word for line in self.lines]
+    
+    @property
     def is_match(self):
         return any(line.is_match for line in self.lines)
 
     def oob_count(self):
         return sum(line.is_oob for line in self.lines)
     
-    def generate_trigger(self):
+    def can_generate(self):
         return time() - self.prev_generate_time > self._GENERATE_CYCLE
     
     def generate_word(self):
         random_idx = np.random.randint(0, len(self.lines))
         selected_line = self.lines[random_idx]
-        selected_line.add_word(get_word())
+        generated_word = get_word()
+        selected_line.add_word(generated_word)
 
         self.prev_generate_time = time()
     
     def update(self, input_word):
-        if self.generate_trigger():
+        if self.can_generate():
             self.generate_word()
 
         for line in self.lines:
@@ -101,3 +114,28 @@ class WordRunningBoard:
     def clear(self):
         for line in self.lines:
             line.clear()
+
+class TowerManager:
+    _LINE_GAP = _STD_LINE_GAP
+
+    def __init__(self):
+        self.towers = []
+    
+    @property
+    def first_bullets(self):
+        return [tower.first_bullet for tower in self.towers]
+    
+    def add_tower(self, ypos: int):
+        assert ypos >= 0
+        ypos = (ypos - 1)*self._LINE_GAP
+        self.towers.append(Tower(ypos))
+        
+    def update(self):
+        for tower in self.towers:
+            tower.update()
+
+    def clear(self):
+        for tower in self.towers:
+            tower.bullet_queue.clear()
+        self.towers.clear()
+
