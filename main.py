@@ -4,7 +4,14 @@ import pygame
 from pygame.locals import QUIT
 
 import items
-from components import WordRunningBoard
+from commands import (
+    Commands,
+    parse_arg,
+)
+from components import (
+    WordRunningBoard,
+    TowerManager,
+)
 from definitions import Pages
 from items import (
     Button,
@@ -35,6 +42,7 @@ class App:
         self.size = self.width, self.height = width, height
         self.page = Pages.home
         self.board = None
+        self.tower_manager = None
         self.user_input_display = None
         self.game_info = None
 
@@ -58,6 +66,11 @@ class App:
         if self.board is None:
             self.board = WordRunningBoard(10, (0, 10), self.width)
         self.board.clear()
+        if self.tower_manager is None:
+            self.tower_manager = TowerManager()
+        self.tower_manager.clear()
+        # for i in range(10):
+        #     self.tower_manager.add_tower(i + 1)
         if self.user_input_display is None:
             self.user_input_display = UserInputDisplay((20, self.height - 30))
         self.user_input_display.clear()
@@ -81,9 +94,33 @@ class App:
     
     def update_items(self):
         self.board.update(self.user_input_display.inputbox)
+        self.tower_manager.update()
         is_match = self.board.is_match
         oob_n = self.board.oob_count()
-        self.user_input_display.update(is_match)
+        input_str = self.user_input_display.update(is_match)
+
+        # handling command
+        if input_str and input_str[-1] == '\n':  # is a finished command
+            command_str = parse_arg(input_str)
+            if command_str[0] == Commands.pause.value:
+                pass
+            elif command_str[0] == Commands.tower.value:
+                ypos = int(command_str[1])
+                self.tower_manager.add_tower(ypos)
+            else:
+                print("unknow command")
+            self.user_input_display.clear()
+        
+        # handling collision between word and bullet
+        for i, first_bullet in enumerate(self.tower_manager.first_bullets):
+            for j, first_word in enumerate(self.board.first_words):
+                if first_bullet is None or first_word is None:
+                    continue
+                if first_bullet.body.colliderect(first_word.body):
+                    self.tower_manager.towers[i].bullet_queue.pop(0)
+                    self.board.lines[j].word_queue.pop(0)
+
+        # handling information table
         if is_match:
             self._info_table["score"] += self._SCORE_PER_WORD
         if oob_n > 0:

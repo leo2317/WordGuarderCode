@@ -1,8 +1,10 @@
+from time import time
 from typing import Tuple, Mapping, Union
 
 import pygame
 
-from utils import PygameFunction
+from commands import Commands
+from utils import PygameFunction, Queue
 
 
 BLACK = (0, 0, 0)
@@ -79,6 +81,10 @@ class RunningWord(Word):
     def __init__(self, text: str, pos: Tuple[int, int], *args):
         super().__init__(text, pos, self._SAFE_COLOR, *args)
     
+    @property
+    def body(self):
+        return self.word_rec
+    
     def _color_update(self, x: int):
         if x > self._WARNING_BOUNDRY:
             self.font_color = self._DENGEOUS_COLOR
@@ -132,24 +138,27 @@ class UserInputDisplay(Word):
     
     def read(self, key: str):
         if key == PygameFunction.KEY_BACKSPACE:
-            if self.mode == UserInputDisplay._COMMAND_MODE:
-                self.mode = UserInputDisplay._TYPING_MODE
-            else:
-                self._pop()
+            self._pop()
+            return
+
+        if key == UserInputDisplay._COMMAND_PREFIX and self.mode == UserInputDisplay._COMMAND_MODE:
+            self.mode = UserInputDisplay._TYPING_MODE
         elif key is not None:
             if self.is_empty and key == UserInputDisplay._COMMAND_PREFIX:
                 self.mode = UserInputDisplay._COMMAND_MODE
-            elif key.isalnum() or key == ' ':
+            else:
                 self._add_key(key)
 
     def update(self, match: bool):
         super().update()
         if match:
             self.clear()
+        
+        return self.inputbox
 
     def update_text(self):
         mode_name = "typing" if self.mode == UserInputDisplay._TYPING_MODE else "command"
-        mode_str = f"[ {mode_name} ] " 
+        mode_str = f"[ {mode_name} ] "
         input_str = f"\"{self.inputbox}\""
         self.text = mode_str + input_str
     
@@ -170,6 +179,73 @@ class GameInfo(Word):
     def update(self, info_table: Mapping):
         self.text = ', '.join(GameInfo.info_format(*pair) for pair in info_table.items())
         super().update()
+
+class Tower(Word):
+    _GUARDING_LINE_POS = 980  # screen width: 1000
+    _PADDING = 10
+    _SYMBOL = "--("
+    _COOL_TIME = 2
+
+    _TOWER_COLOR = (255, 255, 255)
+
+    def __init__(self, ypos):
+        super().__init__(
+            text=self._SYMBOL,
+            pos=(self._GUARDING_LINE_POS, ypos + self._PADDING)
+        )
+
+        self.bullet_queue = Queue()
+        self.previous_fire_time = time()
+    
+    @property
+    def first_bullet(self):
+        return self.bullet_queue.head
+    
+    def can_fire(self):
+        return time() - self.previous_fire_time > self._COOL_TIME
+    
+    def fire(self):
+        self.bullet_queue.append(Bullet(self.pos))
+        self.previous_fire_time = time()
+    
+    def update(self):
+        super().update()
+
+        if self.can_fire():
+            self.fire()
+
+        bullet_queue_copy = list(self.bullet_queue)
+        for bullet in bullet_queue_copy:
+            bullet.update()
+            if bullet.is_oob():
+                self.bullet_queue.pop(0)
+
+class Bullet(Word):
+    _GUARDING_LINE_POS = 980  # screen width: 1000
+    _PADDING = 10
+    _SYMBOL = '-'
+    _SPEED = 3
+
+    _BULLET_COLOR = (255, 255, 255)
+
+    def __init__(self, pos):
+        super().__init__(
+            text=self._SYMBOL,
+            pos=pos
+        )
+    
+    @property
+    def body(self):
+        return self.word_rec
+    
+    def is_oob(self):
+        xpos, ypos = self.pos
+        return xpos < 0
+    
+    def update(self):
+        xpos, ypos = self.pos
+        new_pos = (xpos - self._SPEED, ypos)
+        super().update(new_pos)
 
 # Widget
 
