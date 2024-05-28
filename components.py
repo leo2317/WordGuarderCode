@@ -5,7 +5,7 @@ from typing import Tuple
 import numpy as np
 import pygame
 
-from items import RunningWord, Tower
+from items import RunningWord, Word, Tower
 from utils import (
     get_word,
     Queue,
@@ -15,13 +15,20 @@ _STD_LINE_GAP = 40
 
 
 class WordRunningLine:
+    ID = 1
+
     def __init__(self, pos: Tuple[int, int], line_boundry: int):
         self.pos = pos
         self.word_queue = Queue()
+        self.have_tower = False
 
         self._LINE_BOUNDRY = line_boundry
 
         self._is_match = False
+
+        xpos, ypos = self.pos
+        self.line_id = Word(f"{self.ID:2d}", (self._LINE_BOUNDRY - 20, ypos))
+        WordRunningLine.ID += 1
     
     @property
     def word_num(self):
@@ -67,6 +74,9 @@ class WordRunningLine:
         word_queue_copy = list(self.word_queue)
         for word in word_queue_copy:
             word.update()
+
+        if not self.have_tower:
+            self.line_id.update()
     
     def clear(self):
         self.word_queue.clear()
