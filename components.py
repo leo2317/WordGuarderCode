@@ -27,7 +27,7 @@ class WordRunningLine:
         self._is_match = False
 
         xpos, ypos = self.pos
-        self.line_id = Word(f"{self.ID:2d}", (self._LINE_BOUNDRY - 20, ypos))
+        self.line_id = Word(f"{self.ID:3d}", (self._LINE_BOUNDRY - 50, ypos))
         WordRunningLine.ID += 1
     
     @property
@@ -46,16 +46,14 @@ class WordRunningLine:
     
     @property
     def is_oob(self):
-        first_word = self.word_queue.head
-
-        if first_word is None:
+        if self.first_word is None:
             return False
 
-        x, y = first_word.pos
+        x, y = self.first_word.pos
         is_oob = x > self._LINE_BOUNDRY
 
         if is_oob:
-            oob_word = self.word_queue.pop()
+            oob_word = self.word_queue.pop(0)
             # del oob_word
 
         return is_oob
@@ -92,6 +90,7 @@ class WordRunningBoard:
         self.lines = [WordRunningLine((x, y + i*self._LINE_GAP), line_boundry) for i in range(line_num)]
 
         self.prev_generate_time = time()
+        self.c = 3
     
     @property
     def first_words(self):
@@ -116,7 +115,7 @@ class WordRunningBoard:
         self.prev_generate_time = time()
     
     def update(self, input_word):
-        if self.can_generate():
+        if self.can_generate() and self.c:
             self.generate_word()
 
         for line in self.lines:

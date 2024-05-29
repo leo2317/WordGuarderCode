@@ -18,6 +18,10 @@ class Colors(Enum):
     RED = (255, 0, 0)
     PURPLE = (160, 32, 240)
 
+class Fonts(Enum):
+    std_font = "./fonts/ka1.ttf"
+    sym_font = "./fonts/AovelSansRounded-rdDL.ttf"
+
 class Queue(UserList):
     @property
     def head(self):
