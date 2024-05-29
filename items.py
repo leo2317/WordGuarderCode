@@ -4,7 +4,7 @@ from typing import Tuple, Mapping, Union
 import pygame
 
 from commands import Commands
-from utils import Colors, PygameFunction, Queue
+from utils import Colors, Fonts, PygameFunction, Queue
 
 
 # String
@@ -29,8 +29,8 @@ class Item(pygame.sprite.Sprite):
         self._DISPLAY_SURF.blit(obj, rec)
 
 class Word(Item):
-    _FONT_STYLE = 'freesansbold.ttf'
-    _FONT_SIZE = 15
+    _FONT_STYLE = Fonts.std_font.value
+    _FONT_SIZE = 20
     _FONT_COLOR = Colors.WHITE.value
 
     def __init__(self, text: str, pos: Tuple[int, int], color: str=None, *args):
@@ -174,11 +174,13 @@ class GameInfo(Word):
         super().update()
 
 class Tower(Word):
-    _GUARDING_LINE_POS = 980  # screen width: 1000
-    _PADDING = 10
+    _GUARDING_LINE_POS = 950  # screen width: 1000
+    _PADDING = 7
     _SYMBOL = "-=("
     _COOL_TIME = 2
 
+    _FONT_STYLE = Fonts.sym_font.value
+    _FONT_SIZE = 30
     _TOWER_COLOR = Colors.PURPLE.value
 
     def __init__(self, ypos):
@@ -220,6 +222,8 @@ class Bullet(Word):
     _SYMBOL = '@'
     _SPEED = 3
 
+    _FONT_STYLE = Fonts.sym_font.value
+    _FONT_SIZE = 30
     _BULLET_COLOR = Colors.PURPLE.value
 
     def __init__(self, pos):
@@ -245,10 +249,10 @@ class Bullet(Word):
 # Widget
 
 class Button(Item):
-    _FONT_STYLE = 'freesansbold.ttf'
-    _FONT_SIZE = 36
+    _FONT_STYLE = Fonts.std_font.value
+    _FONT_SIZE = 40
     
-    WIDTH = 250
+    WIDTH = 350
     HEIGHT = 100
 
     def __init__(self, x: int, y: int, text: str, text_color=Colors.BLACK.value, button_color=Colors.GRAY.value, hover_color=Colors.GREEN.value):

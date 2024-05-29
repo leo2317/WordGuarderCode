@@ -62,6 +62,9 @@ class App:
         Item.set_display_serf(self._display_surf)
 
     def on_start(self):
+        # layout args
+        info_buttom_padding = 40
+
         if self.board is None:
             self.board = WordRunningBoard(10, (0, 10), self.width)
         self.board.clear()
@@ -70,11 +73,12 @@ class App:
         self.tower_manager.clear()
         # for i in range(10):
         #     self.tower_manager.add_tower(i + 1)
+        #     self.board.lines[i].have_tower = True
         if self.user_input_display is None:
-            self.user_input_display = UserInputDisplay((20, self.height - 30))
+            self.user_input_display = UserInputDisplay((20, self.height - info_buttom_padding))
         self.user_input_display.clear()
         if self.game_info is None:
-            self.game_info = GameInfo((500, self.height - 30))
+            self.game_info = GameInfo((500, self.height - info_buttom_padding))
         self._info_table["score"] = 0
     
     def on_event(self, event):
@@ -142,7 +146,7 @@ class App:
         self._display_surf.fill(self._BACKGROUND_COLOR)
     
     def home_loop(self):
-        start_button = Button(self.width/2, self.height/2, "start!")
+        start_button = Button(self.width/2, self.height/2, "start !")
         is_start = False
         while self._running and not is_start:
             for event in pygame.event.get():
@@ -166,8 +170,8 @@ class App:
     
     def exit_loop(self):
         gap, padding = 100, 10
-        again_button = Button(self.width/2, self.height/2 - gap - padding, "again!")
-        check_record_button = Button(self.width/2, self.height/2, "check record")
+        again_button = Button(self.width/2, self.height/2 - gap - padding, "again !")
+        check_record_button = Button(self.width/2, self.height/2, "check info")
         exit_button = Button(self.width/2, self.height/2 + gap + padding, "exit")
 
         self._again = False
