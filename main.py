@@ -26,7 +26,6 @@ class App:
     _BACKGROUND_COLOR = Colors.BLACK.value
 
     # app constants
-    _SCORE_PER_WORD = 10
     _MIN_SCORE = -50
 
     def __init__(self, height, width, fps):
@@ -99,13 +98,12 @@ class App:
         self.board.update(self.user_input_display.inputbox)
         self.tower_manager.update()
         is_match = self.board.is_match
-        oob_n = self.board.oob_count()
         input_str = self.user_input_display.update(is_match)
 
         pygame.draw.line(self._display_surf, Colors.WHITE.value, (0, self.height - 50), (self.width, self.height - 50), 3)
 
         # handling command
-        if input_str and input_str[-1] == '\n':  # is a finished command
+        if input_str and input_str[-1] == '\n':  # is a finished command (i.e., not `None` and type <ENTER>)
             command_str = parse_arg(input_str)
             if command_str[0] == Commands.pause.value:
                 pass
@@ -128,10 +126,8 @@ class App:
                     self.board.lines[j].word_queue.pop(0)
 
         # handling information table
-        if is_match:
-            self._info_table["score"] += self._SCORE_PER_WORD
-        if oob_n > 0:
-            self._info_table["score"] -= self._SCORE_PER_WORD*oob_n
+        self._info_table["score"] += self.board.total_match_word_score
+        self._info_table["score"] -= self.board.total_oob_word_score
         self.game_info.update(self._info_table)
 
         is_over = self._info_table["score"] <= self._MIN_SCORE

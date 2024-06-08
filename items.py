@@ -63,16 +63,32 @@ class Word(Item):
         self._create_word(new_pos)
 
 class RunningWord(Word):
+    _FONT_STYLE = Fonts.running_word_font.value
     _SAFE_COLOR = Colors.GREEN.value
     _WARNING_COLOR = Colors.YELLOW.value
     _DENGEOUS_COLOR = Colors.RED.value
     _SAFE_BOUNDRY = 500
     _WARNING_BOUNDRY = 800
 
+    '''
+    1. (5, 12)
+        easy:       11.70%
+        median:     84.80%
+        hard:        4.40%
+    2. (7, 12) - more reasonable
+        easy:       39.97%
+        median:     42.23%
+        hard:       18.70%
+    '''
+
+    _EASY_THRESHOLD = 7  # 5
+    _HARD_THRESHOLD = 12  # 12
     _RUNNING_SPEED = 2
 
     def __init__(self, text: str, pos: Tuple[int, int], *args):
         super().__init__(text, pos, self._SAFE_COLOR, *args)
+
+        self.score = self.get_score()
     
     @property
     def body(self):
@@ -83,6 +99,16 @@ class RunningWord(Word):
             self.font_color = self._DENGEOUS_COLOR
         elif x > self._SAFE_BOUNDRY:
             self.font_color = self._WARNING_COLOR
+    
+    def get_score(self):
+        word_len = len(self.text)
+
+        if word_len < self._EASY_THRESHOLD:
+            return 3
+        elif word_len < self._HARD_THRESHOLD:
+            return 5
+        else:
+            return 10
 
     def update(self):
         x, y = self.pos

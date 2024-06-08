@@ -25,6 +25,8 @@ class WordRunningLine:
         self._LINE_BOUNDRY = line_boundry
 
         self._is_match = False
+        self.match_word_score = None
+        self.oob_word_score = None
 
         xpos, ypos = self.pos
         self.line_id = Word(f"{self.ID:3d}", (self._LINE_BOUNDRY - 50, ypos))
@@ -44,19 +46,17 @@ class WordRunningLine:
         self._is_match = False  # reset
         return match_flag
     
-    @property
-    def is_oob(self):
+    def get_oob_word(self):
         if self.first_word is None:
-            return False
+            return None
 
         x, y = self.first_word.pos
         is_oob = x > self._LINE_BOUNDRY
 
-        if is_oob:
-            oob_word = self.word_queue.pop(0)
-            # del oob_word
+        if not is_oob:
+            return None
 
-        return is_oob
+        return self.word_queue.pop(0)
 
     def add_word(self, text):
         self.word_queue.append(RunningWord(text, self.pos))
@@ -65,9 +65,18 @@ class WordRunningLine:
         self.word_queue.delete(idx)
     
     def update(self, input_word):
+        self.match_word_score = 0
+        self.oob_word_score = 0
+
         if input_word in self.word_queue:
             self._is_match = True
+            idx = self.word_queue.index(input_word)
+            self.match_word_score = self.word_queue[idx].score
             self.word_queue.remove(input_word)
+        
+        oob_word = self.get_oob_word()
+        if oob_word is not None:
+            self.oob_word_score = oob_word.score
 
         word_queue_copy = list(self.word_queue)
         for word in word_queue_copy:
@@ -88,9 +97,10 @@ class WordRunningBoard:
     def __init__(self, line_num: int, pos: Tuple[int, int], line_boundry: int):
         x, y = pos
         self.lines = [WordRunningLine((x, y + i*self._LINE_GAP), line_boundry) for i in range(line_num)]
+        self.total_match_word_score = None
+        self.total_oob_word_score = None
 
         self.prev_generate_time = time()
-        self.c = 3
     
     @property
     def first_words(self):
@@ -99,9 +109,6 @@ class WordRunningBoard:
     @property
     def is_match(self):
         return any(line.is_match for line in self.lines)
-
-    def oob_count(self):
-        return sum(line.is_oob for line in self.lines)
     
     def can_generate(self):
         return time() - self.prev_generate_time > self._GENERATE_CYCLE
@@ -115,11 +122,15 @@ class WordRunningBoard:
         self.prev_generate_time = time()
     
     def update(self, input_word):
-        if self.can_generate() and self.c:
+        if self.can_generate():
             self.generate_word()
 
+        self.total_match_word_score = 0
+        self.total_oob_word_score = 0
         for line in self.lines:
             line.update(input_word)
+            self.total_match_word_score += line.match_word_score
+            self.total_oob_word_score += line.oob_word_score
     
     def clear(self):
         for line in self.lines:

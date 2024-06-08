@@ -3025,8 +3025,3 @@ zone
 zoom
 zoom-in
 zoom-out
-
-
-
-
-
