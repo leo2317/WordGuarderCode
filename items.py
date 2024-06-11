@@ -72,17 +72,17 @@ class RunningWord(Word):
 
     '''
     1. (5, 12)
-        easy:       11.70%
-        median:     84.80%
-        hard:        4.40%
-    2. (7, 12) - more reasonable
-        easy:       39.97%
-        median:     42.23%
-        hard:       18.70%
+        easy:       [2, 4]       11.70%
+        medium:     [5, 11]      84.80%
+        hard:       [12, 16]      4.40%
+    2. (7, 10) - more reasonable
+        easy:       [2, 6]       39.97%
+        medium:     [7, 9]       42.23%
+        hard:       [10, 16]     18.70%
     '''
 
-    _EASY_THRESHOLD = 7  # 5
-    _HARD_THRESHOLD = 12  # 12
+    _EASY_THRESHOLD = 7
+    _HARD_THRESHOLD = 10
     _RUNNING_SPEED = 2
 
     def __init__(self, text: str, pos: Tuple[int, int], *args):
