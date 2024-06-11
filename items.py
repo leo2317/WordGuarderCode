@@ -204,6 +204,7 @@ class Tower(Word):
     _PADDING = 7
     _SYMBOL = "-=("
     _COOL_TIME = 2
+    _LIFE_CYCLE = 20
 
     _FONT_STYLE = Fonts.sym_font.value
     _FONT_SIZE = 30
@@ -217,21 +218,28 @@ class Tower(Word):
         )
 
         self.bullet_queue = Queue()
-        self.previous_fire_time = time()
+        self.create_time = self.previous_fire_time = time()
     
     @property
     def first_bullet(self):
         return self.bullet_queue.head
     
+    def is_expired(self):
+        return time() - self.create_time > self._LIFE_CYCLE
+    
     def can_fire(self):
-        return time() - self.previous_fire_time > self._COOL_TIME
+        return (
+            not self.is_expired() and
+            time() - self.previous_fire_time > self._COOL_TIME
+        )
     
     def fire(self):
         self.bullet_queue.append(Bullet(self.pos))
         self.previous_fire_time = time()
     
     def update(self):
-        super().update()
+        if not self.is_expired():
+            super().update()
 
         if self.can_fire():
             self.fire()

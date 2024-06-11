@@ -20,7 +20,7 @@ class WordRunningLine:
     def __init__(self, pos: Tuple[int, int], line_boundry: int):
         self.pos = pos
         self.word_queue = Queue()
-        self.have_tower = False
+        self.tower = None
 
         self._LINE_BOUNDRY = line_boundry
 
@@ -45,6 +45,12 @@ class WordRunningLine:
         match_flag = self._is_match
         self._is_match = False  # reset
         return match_flag
+    
+    def have_tower(self):
+        return (
+            self.tower is not None and
+            not self.tower.is_expired()
+        )
     
     def get_oob_word(self):
         if self.first_word is None:
@@ -82,12 +88,13 @@ class WordRunningLine:
         for word in word_queue_copy:
             word.update()
 
-        if not self.have_tower:
+        if not self.have_tower():
             self.line_id.update()
+            self.tower = None
     
     def clear(self):
         self.word_queue.clear()
-        self.have_tower = False
+        self.tower = None
 
 class WordRunningBoard:
     _LINE_GAP = _STD_LINE_GAP
@@ -149,7 +156,10 @@ class TowerManager:
     def add_tower(self, ypos: int):
         assert ypos >= 0
         ypos = (ypos - 1)*self._LINE_GAP
-        self.towers.append(Tower(ypos))
+        new_tower = Tower(ypos)
+        self.towers.append(new_tower)
+
+        return new_tower
         
     def update(self):
         for tower in self.towers:
@@ -159,4 +169,3 @@ class TowerManager:
         for tower in self.towers:
             tower.bullet_queue.clear()
         self.towers.clear()
-

@@ -70,9 +70,6 @@ class App:
         if self.tower_manager is None:
             self.tower_manager = TowerManager()
         self.tower_manager.clear()
-        # for i in range(10):
-        #     self.tower_manager.add_tower(i + 1)
-        #     self.board.lines[i].have_tower = True
         if self.user_input_display is None:
             self.user_input_display = UserInputDisplay((20, self.height - info_buttom_padding))
         self.user_input_display.clear()
@@ -109,8 +106,8 @@ class App:
                 pass
             elif command_str[0] == Commands.tower.value:
                 ypos = int(command_str[1])
-                self.tower_manager.add_tower(ypos)
-                self.board.lines[ypos - 1].have_tower = True
+                new_toewr = self.tower_manager.add_tower(ypos)
+                self.board.lines[ypos - 1].tower = new_toewr
             else:
                 print("unknow command")
             self.user_input_display.mode = self.user_input_display._TYPING_MODE
