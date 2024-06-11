@@ -1,6 +1,6 @@
 from random import random
 from time import time
-from typing import Tuple
+from typing import Tuple, Mapping
 
 import numpy as np
 import pygame
@@ -9,6 +9,7 @@ from items import RunningWord, Word, Tower
 from utils import (
     get_word,
     Queue,
+    InfoTable,
 )
 
 _STD_LINE_GAP = 40
@@ -146,6 +147,8 @@ class WordRunningBoard:
 class TowerManager:
     _LINE_GAP = _STD_LINE_GAP
 
+    _TOWER_COST = 20
+
     def __init__(self):
         self.towers = []
     
@@ -153,8 +156,14 @@ class TowerManager:
     def first_bullets(self):
         return [tower.first_bullet for tower in self.towers]
     
-    def add_tower(self, ypos: int):
+    def add_tower(self, ypos: int, info_table: InfoTable):
         assert ypos >= 0
+
+        if info_table.score < self._TOWER_COST:
+            print(f"toewr cost is {self._TOWER_COST}, your score {info_table.score} is too low")
+            return None
+
+        info_table.score -= self._TOWER_COST
         ypos = (ypos - 1)*self._LINE_GAP
         new_tower = Tower(ypos)
         self.towers.append(new_tower)
