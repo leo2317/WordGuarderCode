@@ -23,6 +23,10 @@ class Fonts(Enum):
     std_font = "./fonts/std.ttf"
     sym_font = "./fonts/sym.ttf"
 
+class InfoTable:
+    def __init__(self):
+        self.score = 0
+
 class Queue(UserList):
     @property
     def head(self):

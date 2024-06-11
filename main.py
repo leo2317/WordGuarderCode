@@ -18,7 +18,11 @@ from items import (
     UserInputDisplay,
     GameInfo,
 )
-from utils import Colors, PygameFunction
+from utils import (
+    Colors,
+    PygameFunction,
+    InfoTable,
+)
 
 
 class App:
@@ -44,9 +48,7 @@ class App:
         self.user_input_display = None
         self.game_info = None
 
-        self._info_table = {
-            "score": 0,
-        }
+        self._info_table = InfoTable()
     
     def on_init(self):
         # pygame setting
@@ -67,15 +69,18 @@ class App:
         if self.board is None:
             self.board = WordRunningBoard(10, (0, 10), self.width)
         self.board.clear()
+
         if self.tower_manager is None:
             self.tower_manager = TowerManager()
         self.tower_manager.clear()
+
         if self.user_input_display is None:
             self.user_input_display = UserInputDisplay((20, self.height - info_buttom_padding))
         self.user_input_display.clear()
+
         if self.game_info is None:
             self.game_info = GameInfo((500, self.height - info_buttom_padding))
-        self._info_table["score"] = 0
+        self._info_table.score = 0
     
     def on_event(self, event):
         if event.type == QUIT:
@@ -91,6 +96,42 @@ class App:
         else:
             pass
     
+    '''
+    TODO:
+        1. command error
+        2. error message
+    '''
+    def command_handler(self, input_str):
+        if not input_str or input_str[-1] != '\n':
+            return
+
+        command_str = parse_arg(input_str)
+        if command_str[0] == Commands.pause.value:
+            pass
+        elif command_str[0] == Commands.tower.value:
+            ypos = int(command_str[1])
+            new_toewr = self.tower_manager.add_tower(ypos, self._info_table)
+            if new_toewr is not None:
+                self.board.lines[ypos - 1].tower = new_toewr
+        else:
+            print("unknow command")
+        self.user_input_display.mode = self.user_input_display._TYPING_MODE
+        self.user_input_display.clear()
+    
+    def collision_handler(self):
+        for i, first_bullet in enumerate(self.tower_manager.first_bullets):
+            for j, first_word in enumerate(self.board.first_words):
+                if first_bullet is None or first_word is None:
+                    continue
+                if first_bullet.body.colliderect(first_word.body):
+                    self.tower_manager.towers[i].bullet_queue.pop(0)
+                    self.board.lines[j].word_queue.pop(0)
+    
+    def update_game_info(self):
+        self._info_table.score += self.board.total_match_word_score
+        self._info_table.score -= self.board.total_oob_word_score
+        self.game_info.update(self._info_table)
+    
     def update_items(self):
         self.board.update(self.user_input_display.inputbox)
         self.tower_manager.update()
@@ -99,35 +140,15 @@ class App:
 
         pygame.draw.line(self._display_surf, Colors.WHITE.value, (0, self.height - 50), (self.width, self.height - 50), 3)
 
-        # handling command
-        if input_str and input_str[-1] == '\n':  # is a finished command (i.e., not `None` and type <ENTER>)
-            command_str = parse_arg(input_str)
-            if command_str[0] == Commands.pause.value:
-                pass
-            elif command_str[0] == Commands.tower.value:
-                ypos = int(command_str[1])
-                new_toewr = self.tower_manager.add_tower(ypos)
-                self.board.lines[ypos - 1].tower = new_toewr
-            else:
-                print("unknow command")
-            self.user_input_display.mode = self.user_input_display._TYPING_MODE
-            self.user_input_display.clear()
+        self.command_handler(input_str)
         
         # handling collision between word and bullet
-        for i, first_bullet in enumerate(self.tower_manager.first_bullets):
-            for j, first_word in enumerate(self.board.first_words):
-                if first_bullet is None or first_word is None:
-                    continue
-                if first_bullet.body.colliderect(first_word.body):
-                    self.tower_manager.towers[i].bullet_queue.pop(0)
-                    self.board.lines[j].word_queue.pop(0)
+        self.collision_handler()
 
         # handling information table
-        self._info_table["score"] += self.board.total_match_word_score
-        self._info_table["score"] -= self.board.total_oob_word_score
-        self.game_info.update(self._info_table)
+        self.update_game_info()
 
-        is_over = self._info_table["score"] <= self._MIN_SCORE
+        is_over = self._info_table.score <= self._MIN_SCORE
 
         return is_over
     

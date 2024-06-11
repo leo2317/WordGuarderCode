@@ -4,7 +4,13 @@ from typing import Tuple, Mapping, Union
 import pygame
 
 from commands import Commands
-from utils import Colors, Fonts, PygameFunction, Queue
+from utils import (
+    Colors,
+    Fonts,
+    PygameFunction,
+    Queue,
+    InfoTable,
+)
 
 
 # String
@@ -195,8 +201,8 @@ class GameInfo(Word):
             return f"{k}: {v:.2f}"
         return f"{k}: {v}"
     
-    def update(self, info_table: Mapping):
-        self.text = ', '.join(GameInfo.info_format(*pair) for pair in info_table.items())
+    def update(self, info_table: InfoTable):
+        self.text = ', '.join(GameInfo.info_format(*pair) for pair in info_table.__dict__.items())
         super().update()
 
 class Tower(Word):
