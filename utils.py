@@ -2,6 +2,7 @@ import random
 from collections import UserList
 from enum import Enum
 from typing import List
+from time import time
 
 import pygame
 
@@ -25,7 +26,18 @@ class Fonts(Enum):
 
 class InfoTable:
     def __init__(self):
+        self.score = None
+        self.wpm = None
+        self._start_time = None
+    
+    @property
+    def timer(self):
+        return time() - self._start_time
+    
+    def reset(self):
         self.score = 0
+        self.wpm = 0
+        self._start_time = time()
 
 class Queue(UserList):
     @property
@@ -57,6 +69,10 @@ class PygameFunction:
                 return event.unicode
         return None
 
+
+def time_format(t: float):
+    m, s = t//60, t % 60
+    return f"{m:02d}:{s:02d}"
 
 def get_word():
     return random.choice(_WORDS)

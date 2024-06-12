@@ -66,6 +66,7 @@ class App:
         # layout args
         info_buttom_padding = 40
 
+        # components setting
         if self.board is None:
             self.board = WordRunningBoard(10, (0, 10), self.width)
         self.board.clear()
@@ -79,8 +80,8 @@ class App:
         self.user_input_display.clear()
 
         if self.game_info is None:
-            self.game_info = GameInfo((500, self.height - info_buttom_padding))
-        self._info_table.score = 0
+            self.game_info = GameInfo((600, self.height - info_buttom_padding))
+        self._info_table.reset()
     
     def on_event(self, event):
         if event.type == QUIT:
@@ -130,22 +131,23 @@ class App:
     def update_game_info(self):
         self._info_table.score += self.board.total_match_word_score
         self._info_table.score -= self.board.total_oob_word_score
+        total_word_num = self.board.total_char_num/5
+        self._info_table.wpm = total_word_num/self._info_table.timer*60
+
         self.game_info.update(self._info_table)
     
     def update_items(self):
-        self.board.update(self.user_input_display.inputbox)
+        user_input = self.user_input_display.inputbox
+        self.board.update(user_input)
         self.tower_manager.update()
+
         is_match = self.board.is_match
         input_str = self.user_input_display.update(is_match)
 
         pygame.draw.line(self._display_surf, Colors.WHITE.value, (0, self.height - 50), (self.width, self.height - 50), 3)
 
         self.command_handler(input_str)
-        
-        # handling collision between word and bullet
         self.collision_handler()
-
-        # handling information table
         self.update_game_info()
 
         is_over = self._info_table.score <= self._MIN_SCORE

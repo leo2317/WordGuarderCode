@@ -28,6 +28,7 @@ class WordRunningLine:
         self._is_match = False
         self.match_word_score = None
         self.oob_word_score = None
+        self.char_num = 0
 
         xpos, ypos = self.pos
         self.line_id = Word(f"{self.ID:3d}", (self._LINE_BOUNDRY - 50, ypos))
@@ -65,28 +66,30 @@ class WordRunningLine:
 
         return self.word_queue.pop(0)
 
-    def add_word(self, text):
+    def add_word(self, text: str):
         self.word_queue.append(RunningWord(text, self.pos))
     
-    def _remove_word(self, idx):
-        self.word_queue.delete(idx)
+    def check_match(self, input_word: str):
+        if input_word not in self.word_queue:
+            return
+
+        self._is_match = True
+        idx = self.word_queue.index(input_word)
+        self.match_word_score = self.word_queue[idx].score
+        self.word_queue.remove(input_word)
+        self.char_num += len(input_word)
     
-    def update(self, input_word):
+    def update(self, input_word: str):
         self.match_word_score = 0
         self.oob_word_score = 0
 
-        if input_word in self.word_queue:
-            self._is_match = True
-            idx = self.word_queue.index(input_word)
-            self.match_word_score = self.word_queue[idx].score
-            self.word_queue.remove(input_word)
+        self.check_match(input_word) 
         
         oob_word = self.get_oob_word()
         if oob_word is not None:
             self.oob_word_score = oob_word.score
 
-        word_queue_copy = list(self.word_queue)
-        for word in word_queue_copy:
+        for word in self.word_queue:
             word.update()
 
         if not self.have_tower():
@@ -95,6 +98,7 @@ class WordRunningLine:
     
     def clear(self):
         self.word_queue.clear()
+        self.char_num = 0
         self.tower = None
 
 class WordRunningBoard:
@@ -107,8 +111,11 @@ class WordRunningBoard:
         self.lines = [WordRunningLine((x, y + i*self._LINE_GAP), line_boundry) for i in range(line_num)]
         self.total_match_word_score = None
         self.total_oob_word_score = None
+        self.total_char_num = 0
 
         self.prev_generate_time = time()
+
+        self.generate_record = [-1]*3  # only record recent 3 line's idx, used to avoiding word overlapping
     
     @property
     def first_words(self):
@@ -121,15 +128,27 @@ class WordRunningBoard:
     def can_generate(self):
         return time() - self.prev_generate_time > self._GENERATE_CYCLE
     
-    def generate_word(self):
+    # handle word overlapping
+    def get_random_idx(self):
         random_idx = np.random.randint(0, len(self.lines))
+
+        if random_idx in self.generate_record:
+            random_idx = self.get_random_idx()
+        
+        # update record like sliding window
+        self.generate_record = [random_idx] + self.generate_record[:-1]
+        
+        return random_idx
+
+    def generate_word(self):
+        random_idx = self.get_random_idx()
         selected_line = self.lines[random_idx]
         generated_word = get_word()
         selected_line.add_word(generated_word)
 
         self.prev_generate_time = time()
     
-    def update(self, input_word):
+    def update(self, input_word: str):
         if self.can_generate():
             self.generate_word()
 
@@ -139,6 +158,7 @@ class WordRunningBoard:
             line.update(input_word)
             self.total_match_word_score += line.match_word_score
             self.total_oob_word_score += line.oob_word_score
+        self.total_char_num = sum(line.char_num for line in self.lines)
     
     def clear(self):
         for line in self.lines:

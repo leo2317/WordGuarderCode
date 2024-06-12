@@ -202,7 +202,8 @@ class GameInfo(Word):
         return f"{k}: {v}"
     
     def update(self, info_table: InfoTable):
-        self.text = ', '.join(GameInfo.info_format(*pair) for pair in info_table.__dict__.items())
+        info_table_ = {k: v for k, v in info_table.__dict__.items() if k[0] != '_'}
+        self.text = " | ".join(GameInfo.info_format(k, v) for k, v in info_table_.items())
         super().update()
 
 class Tower(Word):
