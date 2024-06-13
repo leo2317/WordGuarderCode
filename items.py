@@ -39,10 +39,13 @@ class Word(Item):
     _FONT_SIZE = 20
     _FONT_COLOR = Colors.WHITE.value
 
-    def __init__(self, text: str, pos: Tuple[int, int], color: str=None, *args):
+    def __init__(self, text: str, pos: Tuple[int, int], font_style: Fonts=None, color: str=None, *args):
         super().__init__(*args)
 
-        self.font = pygame.font.Font(self._FONT_STYLE, self._FONT_SIZE) 
+        if font_style is None:
+            font_style = self._FONT_STYLE
+
+        self.font = pygame.font.Font(font_style, self._FONT_SIZE) 
         self.font_color = self._FONT_COLOR if color is None else color
         self.text = text
         self._create_word(pos)

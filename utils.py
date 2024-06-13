@@ -12,6 +12,11 @@ import pygame
 with open("./words.txt", 'r') as f:
     _WORDS = f.read().splitlines()
 
+GUIDE_CONTENT = '''
+abc
+test
+'''
+
 class Colors(Enum):
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)

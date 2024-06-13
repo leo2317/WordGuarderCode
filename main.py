@@ -1,4 +1,5 @@
 import sys
+from enum import Enum
 
 import pygame
 from pygame.locals import QUIT
@@ -11,20 +12,29 @@ from components import (
     WordRunningBoard,
     TowerManager,
 )
-from definitions import Pages
 from items import (
     Button,
     Item,
     UserInputDisplay,
     GameInfo,
+    Word,
 )
 from utils import (
     Colors,
+    Fonts,
+    GUIDE_CONTENT,
     PygameFunction,
     InfoTable,
     plot_history,
 )
 
+
+
+class Pages(Enum):
+    home = "home"
+    help = "help"
+    main = "main"
+    exit = "exit"
 
 class App:
     # pygame constants
@@ -36,7 +46,7 @@ class App:
     def __init__(self, height, width, fps):
         # pygame setting
         self._running = False
-        self._again = False
+        self._exit = False
         self._display_surf = None
         self._fps = fps
         self._frame_per_sec = None
@@ -50,6 +60,8 @@ class App:
         self.game_info = None
 
         self._info_table = InfoTable()
+
+        self.on_init()
     
     def on_init(self):
         # pygame setting
@@ -59,10 +71,14 @@ class App:
         pygame.display.set_caption("Typing Game")
 
         # app setting
-        self._running = True
-        self._again = True
+        self.pages_loop = {
+            Pages.home: self.home_loop,
+            Pages.help: self.help_loop,
+            Pages.main: self.main_loop,
+            Pages.exit: self.exit_loop,
+        }
         Item.set_display_serf(self._display_surf)
-
+        
     def on_start(self):
         # layout args
         info_buttom_padding = 40
@@ -87,6 +103,7 @@ class App:
     def on_event(self, event):
         if event.type == QUIT:
             self._running = False
+            self._exit = True
             return
 
         if self.page == Pages.home:
@@ -95,6 +112,8 @@ class App:
             key = PygameFunction.read_key(event)
             if key is not None:
                 self.user_input_display.read(key)
+        elif self.page == Pages.help:
+            pass
         else:
             pass
     
@@ -164,7 +183,9 @@ class App:
         self._display_surf.fill(self._BACKGROUND_COLOR)
     
     def home_loop(self):
-        start_button = Button(self.width/2, self.height/2, "start !")
+        gap, padding = 100, 10
+        start_button = Button(self.width/2, self.height/2 - (gap + padding)/2, "start !")
+        help_button = Button(self.width/2, self.height/2 + (gap + padding)/2, "help")
         is_start = False
         while self._running and not is_start:
             for event in pygame.event.get():
@@ -172,7 +193,13 @@ class App:
                 if start_button.handle_event(event):
                     self.page = Pages.main
                     is_start = True
+                    self._running = False
+                elif help_button.handle_event(event):
+                    self.page = Pages.help
+                    self._running = False
+            self.on_cleanup()
             start_button.draw()
+            help_button.draw()
             self.on_render()
     
     def main_loop(self):
@@ -186,14 +213,28 @@ class App:
             is_over = self.update_items()
             self.on_render()
     
+    def help_loop(self):
+        gap, padding = 100, 10
+        content = Word(GUIDE_CONTENT, (self.width/2, 10), Fonts.sym_font.value)
+        back_button = Button(self.width/2, self.height/2, "back")
+        while self._running:
+            for event in pygame.event.get():
+                self.on_event(event)
+                if back_button.handle_event(event):
+                    self.page = Pages.home
+                    self._running = False
+            self.on_cleanup()
+            content.update()
+            back_button.draw()
+            self.on_render()
+
     def exit_loop(self):
         gap, padding = 100, 10
         again_button = Button(self.width/2, self.height/2 - gap - padding, "again !")
         check_record_button = Button(self.width/2, self.height/2, "check info")
         exit_button = Button(self.width/2, self.height/2 + gap + padding, "exit")
 
-        self._again = False
-        while self._running and not self._again:
+        while self._running:
             for event in pygame.event.get():
                 self.on_event(event)
                 '''
@@ -201,10 +242,11 @@ class App:
                 '''
                 if again_button.handle_event(event):
                     self.page = Pages.main
-                    self._again = True
-                if check_record_button.handle_event(event):
+                    self._running = False
+                elif check_record_button.handle_event(event):
                     plot_history(self._info_table._history)
-                if exit_button.handle_event(event):
+                elif exit_button.handle_event(event):
+                    self._exit = True
                     self._running = False
             again_button.draw()
             check_record_button.draw()
@@ -212,10 +254,14 @@ class App:
             self.on_render()
 
     def on_execute(self):
-        self.home_loop()
-        while self._again:
-            self.main_loop()
-            self.exit_loop()
+        # self.home_loop()
+        # while self._again:
+        #     self.main_loop()
+        #     self.exit_loop()
+
+        while not self._exit:
+            self._running = True
+            self.pages_loop[self.page]()
 
         pygame.quit()
         sys.exit()
@@ -225,5 +271,4 @@ if __name__ == "__main__":
     fps = 24
 
     app = App(height, width, fps)
-    app.on_init()
     app.on_execute()
