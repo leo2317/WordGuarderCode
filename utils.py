@@ -1,8 +1,10 @@
 import random
+import json
 from collections import UserList
 from enum import Enum
-from typing import List
+from typing import List, Mapping
 from time import time
+from datetime import datetime, timezone, timedelta
 
 import pygame
 
@@ -25,10 +27,18 @@ class Fonts(Enum):
     sym_font = "./fonts/sym.ttf"
 
 class InfoTable:
+    _CHECKPOING_INTERVAL = 5
+
     def __init__(self):
         self.score = None
         self.wpm = None
         self._start_time = None
+
+        self._previous_ckpt_time = time()
+        self._history = {
+            "score": [],
+            "wpm": [],
+        }
     
     @property
     def timer(self):
@@ -38,6 +48,23 @@ class InfoTable:
         self.score = 0
         self.wpm = 0
         self._start_time = time()
+
+        for v in self._history.values():
+            v.clear()
+    
+    def checkpoint(self):
+        if time() - self._previous_ckpt_time <= self._CHECKPOING_INTERVAL:
+            return
+        
+        self._previous_ckpt_time = time()
+        self._history["score"].append(self.score)
+        self._history["wpm"].append(self.wpm)
+
+    def save(self):
+        file_name = get_date()
+        with open(f"./history/{file_name}.json") as f:
+            json.dump(self._history, f)
+
 
 class Queue(UserList):
     @property
@@ -74,5 +101,27 @@ def time_format(t: float):
     m, s = t//60, t % 60
     return f"{m:02d}:{s:02d}"
 
+def get_date():
+    return datetime.now(timezone(timedelta(hours=+8))).strftime("%Y-%m-%d_%H-%M")
+
 def get_word():
     return random.choice(_WORDS)
+
+
+# visualize
+def plot_history(history: Mapping):
+    # import inner for speed up game loading
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+
+    for i, (ax, (k, v)) in enumerate(zip(axes, history.items())):
+        color = f"C{i}"
+        x = np.arange(len(v))
+        ax.plot(x, v, marker='o', color=color)
+        ax.set_title(k.title() if i == 0 else k.upper())
+        ax.set_xlabel("Time")
+        ax.grid(True)
+    fig.suptitle("Performance")
+    plt.show()

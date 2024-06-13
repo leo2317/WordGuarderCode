@@ -22,6 +22,7 @@ from utils import (
     Colors,
     PygameFunction,
     InfoTable,
+    plot_history,
 )
 
 
@@ -30,7 +31,7 @@ class App:
     _BACKGROUND_COLOR = Colors.BLACK.value
 
     # app constants
-    _MIN_SCORE = -50
+    _MIN_SCORE = -20
 
     def __init__(self, height, width, fps):
         # pygame setting
@@ -135,6 +136,7 @@ class App:
         self._info_table.wpm = total_word_num/self._info_table.timer*60
 
         self.game_info.update(self._info_table)
+        self._info_table.checkpoint()
     
     def update_items(self):
         user_input = self.user_input_display.inputbox
@@ -201,7 +203,7 @@ class App:
                     self.page = Pages.main
                     self._again = True
                 if check_record_button.handle_event(event):
-                    pass
+                    plot_history(self._info_table._history)
                 if exit_button.handle_event(event):
                     self._running = False
             again_button.draw()
