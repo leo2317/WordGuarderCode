@@ -18,6 +18,7 @@ from items import (
     UserInputDisplay,
     GameInfo,
     Word,
+    ErrorMessage,
 )
 from utils import (
     Colors,
@@ -26,6 +27,7 @@ from utils import (
     PygameFunction,
     InfoTable,
     plot_history,
+    set_keyboard_layout,
 )
 
 
@@ -33,6 +35,7 @@ from utils import (
 class Pages(Enum):
     home = "home"
     help = "help"
+    level = "level"  # TODO
     main = "main"
     exit = "exit"
 
@@ -58,6 +61,7 @@ class App:
         self.tower_manager = None
         self.user_input_display = None
         self.game_info = None
+        self.error_msg = None
 
         self._info_table = InfoTable()
 
@@ -68,7 +72,7 @@ class App:
         pygame.init()
         self._display_surf = pygame.display.set_mode(self.size)
         self._frame_per_sec = pygame.time.Clock()
-        pygame.display.set_caption("Typing Game")
+        pygame.display.set_caption("文字防線")
 
         # app setting
         self.pages_loop = {
@@ -97,8 +101,12 @@ class App:
         self.user_input_display.clear()
 
         if self.game_info is None:
-            self.game_info = GameInfo((600, self.height - info_buttom_padding))
+            self.game_info = GameInfo((650, self.height - info_buttom_padding))
         self._info_table.reset()
+
+        if self.error_msg is None:
+            self.error_msg = ErrorMessage((400, self.height - info_buttom_padding))
+        self.error_msg.reset()
     
     def on_event(self, event):
         if event.type == QUIT:
@@ -128,14 +136,15 @@ class App:
 
         command_str = parse_arg(input_str)
         if command_str[0] == Commands.pause.value:
-            pass
+            if len(command_str) > 1:
+                self.error_msg.param_error()
         elif command_str[0] == Commands.tower.value:
             ypos = int(command_str[1])
             new_toewr = self.tower_manager.add_tower(ypos, self._info_table)
             if new_toewr is not None:
                 self.board.lines[ypos - 1].tower = new_toewr
         else:
-            print("unknow command")
+            self.error_msg.unknown_command_error()
         self.user_input_display.mode = self.user_input_display._TYPING_MODE
         self.user_input_display.clear()
     
@@ -155,6 +164,7 @@ class App:
         self._info_table.wpm = total_word_num/self._info_table.timer*60
 
         self.game_info.update(self._info_table)
+        self.error_msg.update()
         self._info_table.checkpoint()
     
     def update_items(self):
@@ -167,7 +177,8 @@ class App:
 
         pygame.draw.line(self._display_surf, Colors.WHITE.value, (0, self.height - 50), (self.width, self.height - 50), 3)
 
-        self.command_handler(input_str)
+        if self.user_input_display.mode == UserInputDisplay._COMMAND_MODE:
+            self.command_handler(input_str)
         self.collision_handler()
         self.update_game_info()
 

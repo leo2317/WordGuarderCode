@@ -1,3 +1,4 @@
+import re
 from time import time
 from typing import Tuple, Mapping, Union
 
@@ -39,7 +40,7 @@ class Word(Item):
     _FONT_SIZE = 20
     _FONT_COLOR = Colors.WHITE.value
 
-    def __init__(self, text: str, pos: Tuple[int, int], font_style: Fonts=None, color: str=None, *args):
+    def __init__(self, text: str, pos: Tuple[int, int], color: str=None, font_style: Fonts=None, *args):
         super().__init__(*args)
 
         if font_style is None:
@@ -132,6 +133,8 @@ class UserInputDisplay(Word):
     _TYPING_MODE = 0
     _COMMAND_MODE = 1
 
+    _INPUT_LEN_MAX = 16
+
     def __init__(self, pos: Tuple[int, int], *args):
         super().__init__("", pos, *args)
 
@@ -146,14 +149,26 @@ class UserInputDisplay(Word):
     def mode(self):
         return self._mode
     
-    @property
-    def is_empty(self):
-        return len(self.inputbox) == 0
-    
     @mode.setter
     def mode(self, new_mode: int):
         self._mode = new_mode
         self.update_text()
+    
+    def is_empty(self):
+        return len(self.inputbox) == 0
+    
+    def is_full(self):
+        return len(self.inputbox) >= self._INPUT_LEN_MAX
+    
+    def is_valid(self, key: str):
+        if self.mode == UserInputDisplay._COMMAND_MODE:
+            return True
+    
+        if key == UserInputDisplay._COMMAND_PREFIX:
+            return True
+
+        pattern = r'^[a-zA-Z]+$'
+        return bool(re.match(pattern, key))
     
     def _add_key(self, key: str):
         assert isinstance(key, str)
@@ -172,15 +187,16 @@ class UserInputDisplay(Word):
         if key == UserInputDisplay._COMMAND_PREFIX and self.mode == UserInputDisplay._COMMAND_MODE:
             self.mode = UserInputDisplay._TYPING_MODE
         elif key is not None:
-            if self.is_empty and key == UserInputDisplay._COMMAND_PREFIX:
+            if self.is_empty() and key == UserInputDisplay._COMMAND_PREFIX:
                 self.mode = UserInputDisplay._COMMAND_MODE
-            else:
+            elif not self.is_full() and self.is_valid(key):
                 self._add_key(key)
 
     def update(self, match: bool):
-        super().update()
         if match:
             self.clear()
+
+        super().update()
         
         return self.inputbox
 
@@ -208,6 +224,32 @@ class GameInfo(Word):
         info_table_ = {k: v for k, v in info_table.__dict__.items() if k[0] != '_'}
         self.text = " | ".join(GameInfo.info_format(k, v) for k, v in info_table_.items())
         super().update()
+
+class ErrorMessage(Word):
+    _FONT_STYLE = Fonts.sym_font.value
+    _DISPLAING_TIME = 5
+
+    def __init__(self, pos: Tuple[int], *args):
+        super().__init__("", pos, Colors.RED.value, *args)
+
+        self.error_occur_time = None
+    
+    def unknown_command_error(self):
+        self.text = "unknown command"
+        self.error_occur_time = time()
+    
+    def param_error(self):
+        self.text = "invalid parameter"
+        self.error_occur_time = time()
+    
+    def update(self):
+        if self.error_occur_time and time() - self.error_occur_time > self._DISPLAING_TIME:
+            self.text = ""
+
+        super().update()
+    
+    def reset(self):
+        self.error_occur_time = None
 
 class Tower(Word):
     _GUARDING_LINE_POS = 950  # screen width: 1000

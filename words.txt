@@ -11,7 +11,6 @@ abort
 abound
 about
 above
-above-average
 abrupt
 abruptly
 absence
@@ -38,7 +37,6 @@ accessible
 accessory
 accident
 accidental
-accident-prone
 acclaim
 acclimatize
 accommodate
@@ -129,7 +127,6 @@ affix
 afraid
 after
 afternoon
-after-tax
 afterward
 again
 against
@@ -147,7 +144,6 @@ agricultural
 ahead
 aid
 aim
-air-conditioner
 aircraft
 airline
 airport
@@ -289,7 +285,6 @@ background
 backlash
 backlog
 backpack
-back-to-back
 backup
 backward
 backyard
@@ -297,7 +292,6 @@ bacteria
 bad
 badge
 badly
-bad-tempered
 baffle
 baffling
 bag
@@ -494,7 +488,6 @@ brainstorm
 brake
 branch
 brand
-brand-new
 brave
 bravely
 bravo
@@ -531,7 +524,6 @@ browse
 browser
 bruise
 brush
-brush-off
 brutal
 brutally
 bubble
@@ -1043,7 +1035,6 @@ earnings
 ease
 east
 easy
-eco-friendly
 economical
 economize
 economy
@@ -1253,7 +1244,6 @@ fast
 fasten
 fatal
 fate
-father-in-law
 fatigue
 fault
 faulty
@@ -1393,7 +1383,6 @@ getaway
 giant
 gift
 gifted
-gift-wrap
 glamor
 glance
 glitch
@@ -1547,7 +1536,6 @@ hurry
 hurt
 hush
 ice
-ice-cold
 icon
 icy
 idea
@@ -1565,7 +1553,6 @@ ignorance
 ignorant
 ignore
 ill
-ill-advised
 illegal
 illicit
 illiteracy
@@ -1649,7 +1636,6 @@ indecisive
 indeed
 indefinite
 independent
-in-depth
 index
 indicate
 indication
@@ -1822,7 +1808,6 @@ laboratory
 lack
 lacking
 lag
-laid-back
 lament
 lamp
 land
@@ -1835,11 +1820,9 @@ landscaper
 languish
 lapse
 large
-large-scale
 lash
 last
 lasting
-last-minute
 late
 lately
 later
@@ -1969,7 +1952,6 @@ meticulous
 metropolitan
 midday
 midmorning
-mid-range
 mild
 mildly
 millennium
@@ -2105,7 +2087,6 @@ outlet
 outline
 outlook
 outmaneuver
-out-of-date
 output
 outrage
 outrageous
@@ -2139,7 +2120,6 @@ particular
 particularly
 partner
 partnership
-part-time
 party
 pass
 passage
@@ -2568,7 +2548,6 @@ select
 selection
 selective
 self
-self-employed
 semester
 seminar
 senior
@@ -2852,7 +2831,6 @@ trust
 trustee
 turnover
 twice
-two-sided
 type
 typical
 typo
@@ -3008,11 +2986,9 @@ worldwide
 worry
 would
 wrist
-X-ray
 yacht
 yard
 yawn
-year-end
 yearly
 yearn
 yearningly
@@ -3023,5 +2999,3 @@ youthful
 zip
 zone
 zoom
-zoom-in
-zoom-out
