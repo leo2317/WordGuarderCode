@@ -167,7 +167,7 @@ class WordRunningBoard:
 class TowerManager:
     _LINE_GAP = _STD_LINE_GAP
 
-    _TOWER_COST = 20
+    _TOWER_COST = 10
 
     def __init__(self):
         self.towers = []

@@ -4,7 +4,6 @@ from typing import Tuple, Mapping, Union
 
 import pygame
 
-from commands import Commands
 from utils import (
     Colors,
     Fonts,
@@ -255,7 +254,7 @@ class Tower(Word):
     _GUARDING_LINE_POS = 950  # screen width: 1000
     _PADDING = 7
     _SYMBOL = "-=("
-    _COOL_TIME = 2
+    _COOL_TIME = 1
     _LIFE_CYCLE = 20
 
     _FONT_STYLE = Fonts.sym_font.value

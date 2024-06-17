@@ -1,4 +1,3 @@
-import ctypes
 import random
 import json
 from collections import UserList
@@ -13,10 +12,7 @@ import pygame
 with open("./words.txt", 'r') as f:
     _WORDS = f.read().splitlines()
 
-GUIDE_CONTENT = '''
-abc
-test
-'''
+GUIDE_CONTENT = '''test (can't display new line)'''
 
 
 class Colors(Enum):
@@ -114,19 +110,9 @@ def get_date():
 def get_word():
     return random.choice(_WORDS)
 
-# Constants for Windows input languages
-LANG_ENGLISH_US = 0x0409
-LANG_CHINESE_TRADITIONAL = 0x0404  # Example for Traditional Chinese
-
-def set_keyboard_layout(lang_id=LANG_ENGLISH_US):
-    # Load the user32.dll
-    user32 = ctypes.WinDLL('user32', use_last_error=True)
-    # Activate the keyboard layout
-    user32.ActivateKeyboardLayout(lang_id, 0x00000001)
-
 
 # visualize
-def plot_history(history: Mapping):
+def plot_history(history: Mapping, play_time: float):
     # import inner for speed up game loading
     import numpy as np
     import matplotlib.pyplot as plt
@@ -135,10 +121,10 @@ def plot_history(history: Mapping):
 
     for i, (ax, (k, v)) in enumerate(zip(axes, history.items())):
         color = f"C{i}"
-        x = np.arange(len(v))
+        x = [play_time/len(v)*i for i in range(len(v))]
         ax.plot(x, v, marker='o', color=color)
         ax.set_title(k.title() if i == 0 else k.upper())
-        ax.set_xlabel("Time")
+        ax.set_xlabel("Time (s)")
         ax.grid(True)
     fig.suptitle("Performance")
     plt.show()

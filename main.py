@@ -18,6 +18,7 @@ from items import (
     UserInputDisplay,
     GameInfo,
     Word,
+    RunningWord,
     ErrorMessage,
 )
 from utils import (
@@ -27,7 +28,6 @@ from utils import (
     PygameFunction,
     InfoTable,
     plot_history,
-    set_keyboard_layout,
 )
 
 
@@ -39,12 +39,24 @@ class Pages(Enum):
     main = "main"
     exit = "exit"
 
+class Levels(Enum):
+    easy = "easy"
+    medium = "medium"
+    hard = "hard"
+
 class App:
     # pygame constants
     _BACKGROUND_COLOR = Colors.BLACK.value
 
     # app constants
+    _game_level = None
+    _max_score = None
     _MIN_SCORE = -20
+    _level_config_table = {         # (max_score, running_word_speed, word_generate_cycle)
+        Levels.easy: (50, 2, 2),
+        Levels.medium: (100, 3, 1.5),
+        Levels.hard: (150, 4, 1.5),
+    }
 
     def __init__(self, height, width, fps):
         # pygame setting
@@ -78,6 +90,7 @@ class App:
         self.pages_loop = {
             Pages.home: self.home_loop,
             Pages.help: self.help_loop,
+            Pages.level: self.level_loop,
             Pages.main: self.main_loop,
             Pages.exit: self.exit_loop,
         }
@@ -138,11 +151,16 @@ class App:
         if command_str[0] == Commands.pause.value:
             if len(command_str) > 1:
                 self.error_msg.param_error()
+            else:
+                pass
         elif command_str[0] == Commands.tower.value:
             ypos = int(command_str[1])
-            new_toewr = self.tower_manager.add_tower(ypos, self._info_table)
-            if new_toewr is not None:
-                self.board.lines[ypos - 1].tower = new_toewr
+            if ypos <= 0 or ypos > 10 or self.board.lines[ypos - 1].tower is not None:
+                self.error_msg.param_error()
+            else:
+                new_toewr = self.tower_manager.add_tower(ypos, self._info_table)
+                if new_toewr is not None:
+                    self.board.lines[ypos - 1].tower = new_toewr
         else:
             self.error_msg.unknown_command_error()
         self.user_input_display.mode = self.user_input_display._TYPING_MODE
@@ -182,7 +200,11 @@ class App:
         self.collision_handler()
         self.update_game_info()
 
-        is_over = self._info_table.score <= self._MIN_SCORE
+        score = self._info_table.score
+        is_over = (
+            score <= self._MIN_SCORE or
+            score >= self._max_score
+        )
 
         return is_over
     
@@ -197,13 +219,11 @@ class App:
         gap, padding = 100, 10
         start_button = Button(self.width/2, self.height/2 - (gap + padding)/2, "start !")
         help_button = Button(self.width/2, self.height/2 + (gap + padding)/2, "help")
-        is_start = False
-        while self._running and not is_start:
+        while self._running:
             for event in pygame.event.get():
                 self.on_event(event)
                 if start_button.handle_event(event):
-                    self.page = Pages.main
-                    is_start = True
+                    self.page = Pages.level
                     self._running = False
                 elif help_button.handle_event(event):
                     self.page = Pages.help
@@ -212,22 +232,55 @@ class App:
             start_button.draw()
             help_button.draw()
             self.on_render()
+
+    def level_loop(self):
+        gap, padding = 100, 10
+        easy_button = Button(self.width/2, self.height/2 - gap - padding, "easy")
+        medium_button = Button(self.width/2, self.height/2, "medium")
+        hard_button = Button(self.width/2, self.height/2 + gap + padding, "hard")
+        while self._running:
+            for event in pygame.event.get():
+                self.on_event(event)
+
+                if easy_button.handle_event(event):
+                    self._game_level = Levels.easy
+                elif medium_button.handle_event(event):
+                    self._game_level = Levels.medium
+                elif hard_button.handle_event(event):
+                    self._game_level = Levels.hard
+                
+                if self._game_level is not None:
+                    self.page = Pages.main
+                    self._running = False
+                    self._max_score, RunningWord._RUNNING_SPEED, WordRunningBoard._GENERATE_CYCLE = \
+                        self._level_config_table[self._game_level]
+
+            self.on_cleanup()
+            easy_button.draw()
+            medium_button.draw()
+            hard_button.draw()
+            self.on_render()
     
     def main_loop(self):
         self.on_start()
         is_over = False
 
-        while self._running and not is_over:
+        while self._running:
             for event in pygame.event.get():
                 self.on_event(event)
             self.on_cleanup()
             is_over = self.update_items()
+
+            if is_over:
+                self.page = Pages.exit
+                self._running = False
+
             self.on_render()
     
     def help_loop(self):
-        gap, padding = 100, 10
-        content = Word(GUIDE_CONTENT, (self.width/2, 10), Fonts.sym_font.value)
-        back_button = Button(self.width/2, self.height/2, "back")
+        gap, padding = 70, 10
+        content = Word(GUIDE_CONTENT, (self.width/2, 10), font_style=Fonts.sym_font.value)
+        back_button = Button(self.width/2, self.height - gap - padding, "back")
         while self._running:
             for event in pygame.event.get():
                 self.on_event(event)
@@ -252,10 +305,15 @@ class App:
                 TODO: wraping this handle_event() into on_event()
                 '''
                 if again_button.handle_event(event):
-                    self.page = Pages.main
+                    self.page = Pages.level
+                    self._game_level = None
                     self._running = False
                 elif check_record_button.handle_event(event):
-                    plot_history(self._info_table._history)
+                    '''
+                    BUG: after ploting performance, the game window will change its size automatically...
+                    '''
+
+                    plot_history(self._info_table._history, self._info_table.timer)
                 elif exit_button.handle_event(event):
                     self._exit = True
                     self._running = False
@@ -265,11 +323,6 @@ class App:
             self.on_render()
 
     def on_execute(self):
-        # self.home_loop()
-        # while self._again:
-        #     self.main_loop()
-        #     self.exit_loop()
-
         while not self._exit:
             self._running = True
             self.pages_loop[self.page]()
