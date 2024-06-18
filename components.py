@@ -1,9 +1,7 @@
-from random import random
 from time import time
-from typing import Tuple, Mapping
+from typing import Tuple
 
 import numpy as np
-import pygame
 
 from items import RunningWord, Word, Tower
 from utils import (

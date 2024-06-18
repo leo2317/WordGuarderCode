@@ -1,6 +1,6 @@
 import re
 from time import time
-from typing import Tuple, Mapping, Union
+from typing import Tuple, Union
 
 import pygame
 

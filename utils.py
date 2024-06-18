@@ -2,7 +2,7 @@ import random
 import json
 from collections import UserList
 from enum import Enum
-from typing import List, Mapping
+from typing import Mapping
 from time import time
 from datetime import datetime, timezone, timedelta
 
@@ -13,12 +13,16 @@ with open("./words.txt", 'r') as f:
     _WORDS = f.read().splitlines()
 
 GUIDE_CONTENT = '''/tower [position]:
-    add tower
+    Add a tower to the given position.
+    Example: `/tower 5`
+    -> Adds a tower to line 5.
 /pause:
-    pause game
+    Pause the game.
+    Example: `/pause`
+    -> Stops the game until the player presses any key.
 '''
 
-
+# datatype
 class Colors(Enum):
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
@@ -73,7 +77,7 @@ class InfoTable:
         with open(f"./history/{file_name}.json") as f:
             json.dump(self._history, f)
 
-
+# utils
 class Queue(UserList):
     @property
     def head(self):
@@ -120,7 +124,6 @@ def get_word():
 # visualize
 def plot_history(history: Mapping, play_time: float):
     # import inner for speed up game loading
-    import numpy as np
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))
@@ -129,7 +132,7 @@ def plot_history(history: Mapping, play_time: float):
         color = f"C{i}"
         x = [play_time/len(v)*i for i in range(len(v))]
         ax.plot(x, v, marker='o', color=color)
-        ax.set_title(k.title() if i == 0 else k.upper())
+        ax.set_ylabel(k.title() if i == 0 else k.upper())
         ax.set_xlabel("Time (s)")
         ax.grid(True)
     fig.suptitle("Performance")

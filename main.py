@@ -18,14 +18,12 @@ from items import (
     Item,
     UserInputDisplay,
     GameInfo,
-    Word,
     RunningWord,
     ErrorMessage,
     HelpInfo,
 )
 from utils import (
     Colors,
-    Fonts,
     GUIDE_CONTENT,
     PygameFunction,
     InfoTable,
@@ -54,7 +52,7 @@ class App:
     _game_level = None
     _max_score = None
     _MIN_SCORE = -20
-    _level_config_table = {         # (max_score, running_word_speed, word_generate_cycle)
+    _level_config_table = {             # (max_score, running_word_speed, word_generate_cycle)
         Levels.easy: (50, 2, 2),
         Levels.medium: (100, 3, 1.5),
         Levels.hard: (150, 4, 1.5),
@@ -148,11 +146,6 @@ class App:
         else:
             pass
     
-    '''
-    TODO:
-        1. command error
-        2. error message
-    '''
     def command_handler(self, input_str):
         if not input_str or input_str[-1] != '\n':
             return
@@ -305,7 +298,7 @@ class App:
     
     def help_loop(self):
         gap, padding = 70, 10
-        content = HelpInfo(GUIDE_CONTENT, (300, 30))
+        content = HelpInfo(GUIDE_CONTENT, (190, 30))
         back_button = Button(self.width/2, self.height - gap - padding, "back")
         while self._running:
             for event in pygame.event.get():
