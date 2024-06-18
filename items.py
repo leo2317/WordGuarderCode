@@ -119,9 +119,12 @@ class RunningWord(Word):
         else:
             return 10
 
-    def update(self):
+    def update(self, *, is_pause: bool=False):
         x, y = self.pos
-        x += self._RUNNING_SPEED
+
+        if not is_pause:
+            x += self._RUNNING_SPEED
+
         new_pos = (x, y)
         self._color_update(x)
         super().update(new_pos)
@@ -224,6 +227,20 @@ class GameInfo(Word):
         self.text = " | ".join(GameInfo.info_format(k, v) for k, v in info_table_.items())
         super().update()
 
+class HelpInfo:
+    def __init__(self, text: str, pos):
+        textline = text.split('\n')
+        xpos, ypos = pos
+        padding = 30
+        self.lines = [
+            Word(text, (xpos, ypos + i*padding), font_style=Fonts.help_word_font.value)
+            for i, text in enumerate(textline)
+        ]
+    
+    def update(self):
+        for line in self.lines:
+            line.update()
+
 class ErrorMessage(Word):
     _FONT_STYLE = Fonts.sym_font.value
     _DISPLAING_TIME = 5
@@ -288,16 +305,16 @@ class Tower(Word):
         self.bullet_queue.append(Bullet(self.pos))
         self.previous_fire_time = time()
     
-    def update(self):
+    def update(self, *, is_pause: bool=False):
         if not self.is_expired():
             super().update()
 
-        if self.can_fire():
+        if self.can_fire() and not is_pause:
             self.fire()
 
         bullet_queue_copy = list(self.bullet_queue)
         for bullet in bullet_queue_copy:
-            bullet.update()
+            bullet.update(is_pause=is_pause)
             if bullet.is_oob():
                 self.bullet_queue.pop(0)
 
@@ -326,9 +343,13 @@ class Bullet(Word):
         xpos, ypos = self.pos
         return xpos < 0
     
-    def update(self):
+    def update(self, *, is_pause: bool=False):
         xpos, ypos = self.pos
-        new_pos = (xpos - self._SPEED, ypos)
+
+        if not is_pause:
+            xpos -= self._SPEED
+
+        new_pos = (xpos, ypos)
         super().update(new_pos)
 
 # Widget

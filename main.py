@@ -1,5 +1,6 @@
 import sys
 from enum import Enum
+from time import time
 
 import pygame
 from pygame.locals import QUIT
@@ -20,6 +21,7 @@ from items import (
     Word,
     RunningWord,
     ErrorMessage,
+    HelpInfo,
 )
 from utils import (
     Colors,
@@ -61,6 +63,7 @@ class App:
     def __init__(self, height, width, fps):
         # pygame setting
         self._running = False
+        self._pause = False
         self._exit = False
         self._display_surf = None
         self._fps = fps
@@ -74,6 +77,7 @@ class App:
         self.user_input_display = None
         self.game_info = None
         self.error_msg = None
+        self.pause_time = None
 
         self._info_table = InfoTable()
 
@@ -82,6 +86,7 @@ class App:
     def on_init(self):
         # pygame setting
         pygame.init()
+        pygame.key.set_repeat(500, 50)  # Delay: 500 ms, Interval: 50 ms
         self._display_surf = pygame.display.set_mode(self.size)
         self._frame_per_sec = pygame.time.Clock()
         pygame.display.set_caption("文字防線")
@@ -133,6 +138,9 @@ class App:
             key = PygameFunction.read_key(event)
             if key is not None:
                 self.user_input_display.read(key)
+                if self._pause:
+                    self._pause = False
+                    self._info_table._start_time += time() - self.pause_time
         elif self.page == Pages.help:
             pass
         else:
@@ -152,7 +160,8 @@ class App:
             if len(command_str) > 1:
                 self.error_msg.param_error()
             else:
-                pass
+                self._pause = True
+                self.pause_time = time()
         elif command_str[0] == Commands.tower.value:
             ypos = int(command_str[1])
             if ypos <= 0 or ypos > 10 or self.board.lines[ypos - 1].tower is not None:
@@ -179,7 +188,9 @@ class App:
         self._info_table.score += self.board.total_match_word_score
         self._info_table.score -= self.board.total_oob_word_score
         total_word_num = self.board.total_char_num/5
-        self._info_table.wpm = total_word_num/self._info_table.timer*60
+
+        if not self._pause:
+            self._info_table.wpm = total_word_num/self._info_table.timer*60
 
         self.game_info.update(self._info_table)
         self.error_msg.update()
@@ -187,8 +198,8 @@ class App:
     
     def update_items(self):
         user_input = self.user_input_display.inputbox
-        self.board.update(user_input)
-        self.tower_manager.update()
+        self.board.update(user_input, is_pause=self._pause)
+        self.tower_manager.update(is_pause=self._pause)
 
         is_match = self.board.is_match
         input_str = self.user_input_display.update(is_match)
@@ -279,7 +290,7 @@ class App:
     
     def help_loop(self):
         gap, padding = 70, 10
-        content = Word(GUIDE_CONTENT, (self.width/2, 10), font_style=Fonts.sym_font.value)
+        content = HelpInfo(GUIDE_CONTENT, (300, 30))
         back_button = Button(self.width/2, self.height - gap - padding, "back")
         while self._running:
             for event in pygame.event.get():

@@ -79,7 +79,7 @@ class WordRunningLine:
         self.word_queue.remove(input_word)
         self.char_num += len(input_word)
     
-    def update(self, input_word: str):
+    def update(self, input_word: str, *, is_pause: bool=False):
         self.match_word_score = 0
         self.oob_word_score = 0
 
@@ -90,7 +90,7 @@ class WordRunningLine:
             self.oob_word_score = oob_word.score
 
         for word in self.word_queue:
-            word.update()
+            word.update(is_pause=is_pause)
 
         if not self.have_tower():
             self.line_id.update()
@@ -148,19 +148,20 @@ class WordRunningBoard:
 
         self.prev_generate_time = time()
     
-    def update(self, input_word: str):
-        if self.can_generate():
+    def update(self, input_word: str, *, is_pause: bool=False):
+        if self.can_generate() and not is_pause:
             self.generate_word()
 
         self.total_match_word_score = 0
         self.total_oob_word_score = 0
         for line in self.lines:
-            line.update(input_word)
+            line.update(input_word, is_pause=is_pause)
             self.total_match_word_score += line.match_word_score
             self.total_oob_word_score += line.oob_word_score
         self.total_char_num = sum(line.char_num for line in self.lines)
     
     def clear(self):
+        self.prev_generate_time = time()
         for line in self.lines:
             line.clear()
 
@@ -190,9 +191,9 @@ class TowerManager:
 
         return new_tower
         
-    def update(self):
+    def update(self, *, is_pause: bool=False):
         for tower in self.towers:
-            tower.update()
+            tower.update(is_pause=is_pause)
 
     def clear(self):
         for tower in self.towers:

@@ -12,7 +12,11 @@ import pygame
 with open("./words.txt", 'r') as f:
     _WORDS = f.read().splitlines()
 
-GUIDE_CONTENT = '''test (can't display new line)'''
+GUIDE_CONTENT = '''/tower [position]:
+    add tower
+/pause:
+    pause game
+'''
 
 
 class Colors(Enum):
@@ -26,6 +30,7 @@ class Colors(Enum):
 
 class Fonts(Enum):
     running_word_font = "./fonts/word.ttf"
+    help_word_font = "./fonts/word.ttf"
     std_font = "./fonts/std.ttf"
     sym_font = "./fonts/sym.ttf"
 
@@ -97,6 +102,7 @@ class PygameFunction:
                 return cls.KEY_RETURN
             else:
                 return event.unicode
+
         return None
 
 
@@ -127,4 +133,6 @@ def plot_history(history: Mapping, play_time: float):
         ax.set_xlabel("Time (s)")
         ax.grid(True)
     fig.suptitle("Performance")
+    fig.canvas.manager.set_window_title("Visualizer")
+
     plt.show()
