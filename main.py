@@ -158,7 +158,6 @@ class App:
             return
 
         command_str = parse_arg(input_str)
-        print(command_str)
         if command_str[0] == Commands.pause.value:
             if len(command_str) > 1:
                 self.error_msg.param_error()
@@ -169,15 +168,20 @@ class App:
             if len(command_str) != 2:
                 self.error_msg.param_error()
             else:
-                ypos = command_str[1]
-                if not isinstance(ypos, int) or ypos <= 0 or ypos > 10 or self.board.lines[ypos - 1].tower is not None:
-                    self.error_msg.param_error()
-                else:
-                    new_toewr = self.tower_manager.add_tower(ypos, self._info_table)
-                    if new_toewr is None:
+                try:
+                    ypos = int(command_str[1])
+                    if ypos <= 0 or ypos > 10:
+                        self.error_msg.param_error()
+                    elif self.board.lines[ypos - 1].tower is not None:
                         self.error_msg.tower_error()
                     else:
-                        self.board.lines[ypos - 1].tower = new_toewr
+                        new_toewr = self.tower_manager.add_tower(ypos, self._info_table)
+                        if new_toewr is None:
+                            self.error_msg.tower_error()
+                        else:
+                            self.board.lines[ypos - 1].tower = new_toewr
+                except ValueError:
+                    self.error_msg.param_error()
         else:
             self.error_msg.unknown_command_error()
         self.user_input_display.mode = self.user_input_display._TYPING_MODE
@@ -195,14 +199,13 @@ class App:
     def update_game_info(self):
         self._info_table.score += self.board.total_match_word_score
         self._info_table.score -= self.board.total_oob_word_score
+        total_word_num = self.board.total_char_num/5
 
         try:
-            total_word_num = self.board.total_char_num/5
+            if not self._pause:
+                self._info_table.wpm = total_word_num/self._info_table.timer*60
         except ZeroDivisionError:
-            total_word_num = 0.0
-
-        if not self._pause:
-            self._info_table.wpm = total_word_num/self._info_table.timer*60
+            self._info_table.wpm = 0.0
 
         self.game_info.update(self._info_table)
         self.error_msg.update()

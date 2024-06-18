@@ -263,7 +263,7 @@ class ErrorMessage(Word):
         self.error_occur_time = time()
     
     def input_full_warning(self):
-        self.text = "max"
+        self.text = "max input length"
         self.error_occur_time = time()
     
     def update(self):
@@ -273,6 +273,7 @@ class ErrorMessage(Word):
         super().update()
     
     def reset(self):
+        self.text = ""
         self.error_occur_time = None
 
 class Tower(Word):
