@@ -119,11 +119,11 @@ class App:
         self.user_input_display.clear()
 
         if self.game_info is None:
-            self.game_info = GameInfo((650, self.height - info_buttom_padding))
+            self.game_info = GameInfo((670, self.height - info_buttom_padding))
         self._info_table.reset()
 
         if self.error_msg is None:
-            self.error_msg = ErrorMessage((400, self.height - info_buttom_padding))
+            self.error_msg = ErrorMessage((450, self.height - info_buttom_padding))
         self.error_msg.reset()
     
     def on_event(self, event):
@@ -138,6 +138,8 @@ class App:
             key = PygameFunction.read_key(event)
             if key is not None:
                 self.user_input_display.read(key)
+                if self.user_input_display.is_full():
+                    self.error_msg.input_full_warning()
                 if self._pause:
                     self._pause = False
                     self._info_table._start_time += time() - self.pause_time
@@ -156,6 +158,7 @@ class App:
             return
 
         command_str = parse_arg(input_str)
+        print(command_str)
         if command_str[0] == Commands.pause.value:
             if len(command_str) > 1:
                 self.error_msg.param_error()
@@ -163,13 +166,18 @@ class App:
                 self._pause = True
                 self.pause_time = time()
         elif command_str[0] == Commands.tower.value:
-            ypos = int(command_str[1])
-            if ypos <= 0 or ypos > 10 or self.board.lines[ypos - 1].tower is not None:
+            if len(command_str) != 2:
                 self.error_msg.param_error()
             else:
-                new_toewr = self.tower_manager.add_tower(ypos, self._info_table)
-                if new_toewr is not None:
-                    self.board.lines[ypos - 1].tower = new_toewr
+                ypos = command_str[1]
+                if not isinstance(ypos, int) or ypos <= 0 or ypos > 10 or self.board.lines[ypos - 1].tower is not None:
+                    self.error_msg.param_error()
+                else:
+                    new_toewr = self.tower_manager.add_tower(ypos, self._info_table)
+                    if new_toewr is None:
+                        self.error_msg.tower_error()
+                    else:
+                        self.board.lines[ypos - 1].tower = new_toewr
         else:
             self.error_msg.unknown_command_error()
         self.user_input_display.mode = self.user_input_display._TYPING_MODE
@@ -187,7 +195,11 @@ class App:
     def update_game_info(self):
         self._info_table.score += self.board.total_match_word_score
         self._info_table.score -= self.board.total_oob_word_score
-        total_word_num = self.board.total_char_num/5
+
+        try:
+            total_word_num = self.board.total_char_num/5
+        except ZeroDivisionError:
+            total_word_num = 0.0
 
         if not self._pause:
             self._info_table.wpm = total_word_num/self._info_table.timer*60
@@ -343,7 +355,7 @@ class App:
 
 if __name__ == "__main__":
     height, width = 500, 1000
-    fps = 24
+    fps = 30
 
     app = App(height, width, fps)
     app.on_execute()

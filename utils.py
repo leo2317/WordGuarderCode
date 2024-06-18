@@ -30,7 +30,7 @@ class Colors(Enum):
 
 class Fonts(Enum):
     running_word_font = "./fonts/word.ttf"
-    help_word_font = "./fonts/word.ttf"
+    norm_word_font = "./fonts/word.ttf"
     std_font = "./fonts/std.ttf"
     sym_font = "./fonts/sym.ttf"
 

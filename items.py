@@ -233,7 +233,7 @@ class HelpInfo:
         xpos, ypos = pos
         padding = 30
         self.lines = [
-            Word(text, (xpos, ypos + i*padding), font_style=Fonts.help_word_font.value)
+            Word(text, (xpos, ypos + i*padding), font_style=Fonts.norm_word_font.value)
             for i, text in enumerate(textline)
         ]
     
@@ -246,7 +246,7 @@ class ErrorMessage(Word):
     _DISPLAING_TIME = 5
 
     def __init__(self, pos: Tuple[int], *args):
-        super().__init__("", pos, Colors.RED.value, *args)
+        super().__init__("", pos, Colors.RED.value, Fonts.norm_word_font.value, *args)
 
         self.error_occur_time = None
     
@@ -256,6 +256,14 @@ class ErrorMessage(Word):
     
     def param_error(self):
         self.text = "invalid parameter"
+        self.error_occur_time = time()
+    
+    def tower_error(self):
+        self.text = "can't add tower"
+        self.error_occur_time = time()
+    
+    def input_full_warning(self):
+        self.text = "max"
         self.error_occur_time = time()
     
     def update(self):
